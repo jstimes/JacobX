@@ -31,6 +31,7 @@ interface Shape {
   rotation: number;
   rotationSpeed: number;
   rotationAxis: number[];
+  textureIndex: number;
 }
 
 interface Point {
@@ -101,7 +102,7 @@ export class AppComponent {
   program: Program;
   buffers: Buffers;
 
-  texture: WebGLTexture;
+  textures: WebGLTexture[] = [];
 
   private shapes: Shape[] = [];
   private isShapeActive = false;
@@ -130,8 +131,10 @@ export class AppComponent {
     // Clear the color buffer with specified clear color
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    const textureUrl = '/assets/images/1.jpg';
-    this.texture = this.loadTexture(this.gl, textureUrl);
+    const numTextures = 6;
+    for (let i=0; i< numTextures; i++) {
+      this.textures.push(this.loadTexture(this.gl, `/assets/images/${i+1}.jpg`));
+    }
 
     const shaderProgram = this.initShaderProgram(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
     this.program = {
@@ -216,6 +219,7 @@ export class AppComponent {
                      zFar);
   
     for (let i=0; i<this.shapes.length; i++) {
+      const shape = this.shapes[i];
       // Set the drawing position to the "identity" point, which is
       // the center of the scene.
       const modelViewMatrix = glm.mat4.create();
@@ -223,14 +227,14 @@ export class AppComponent {
       // start drawing the square.
       glm.mat4.translate(modelViewMatrix,     // destination matrix
                     modelViewMatrix,     // matrix to translate
-                    this.shapes[i].translation);  // amount to translate
+                    shape.translation);  // amount to translate
 
       // glm.mat4.rotate(modelViewMatrix,  // destination matrix
       //                 modelViewMatrix,  // matrix to rotate
       //                 this.shapes[i].rotation,   // amount to rotate in radians
       //               [0, 0, 1]);       // axis to rotate around
 
-      glm.mat4.rotate(modelViewMatrix, modelViewMatrix, this.shapes[i].rotation, this.shapes[i].rotationAxis);
+      glm.mat4.rotate(modelViewMatrix, modelViewMatrix, shape.rotation, shape.rotationAxis);
     
 
       const normalMatrix = glm.mat4.create();
@@ -294,10 +298,20 @@ export class AppComponent {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
       // Tell WebGL we want to affect texture unit 0
+      // const textIndexToGlTex = new Map([
+      //   [0, gl.TEXTURE0],
+      //   [1, gl.TEXTURE1],
+      //   [2, gl.TEXTURE2],
+      //   [3, gl.TEXTURE3],
+      //   [4, gl.TEXTURE4],
+      //   [5, gl.TEXTURE5],
+      //   [6, gl.TEXTURE6],
+      // ]);
+      // gl.activeTexture(textIndexToGlTex.get(shape.textureIndex));
       gl.activeTexture(gl.TEXTURE0);
 
       // Bind the texture to texture unit 0
-      gl.bindTexture(gl.TEXTURE_2D, this.texture);
+      gl.bindTexture(gl.TEXTURE_2D, this.textures[shape.textureIndex]);
 
       // Tell the shader we bound the texture to texture unit 0
       gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
@@ -341,6 +355,7 @@ export class AppComponent {
       rotation: Math.random() * Math.PI * 2,
       rotationSpeed: 1.0,
       rotationAxis: getRandomRotationAxis(),
+      textureIndex: Math.floor(Math.random() * this.textures.length),
     });
   };
 
