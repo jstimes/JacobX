@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import * as glm from './gl-matrix.js'
 
+import {loadTexture, initShaderProgram, loadShader} from './gl_utils';
+
 interface AttribLocations {
   vertexPosition: number;
   vertexNormal: number;
@@ -128,10 +130,10 @@ export class AppComponent {
 
     const numTextures = 6;
     for (let i=0; i< numTextures; i++) {
-      this.textures.push(this.loadTexture(this.gl, `/assets/images/${i+1}.jpg`));
+      this.textures.push(loadTexture(this.gl, `/assets/images/${i+1}.jpg`));
     }
 
-    const shaderProgram = this.initShaderProgram(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+    const shaderProgram = initShaderProgram(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
     this.program = {
       program: shaderProgram,
       attribLocations: {
@@ -191,7 +193,6 @@ export class AppComponent {
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
   
     // Clear the canvas before we start drawing on it.
-  
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
     // Create a perspective matrix, a special matrix that is
@@ -221,7 +222,7 @@ export class AppComponent {
       // the center of the scene.
       const modelViewMatrix = glm.mat4.create();
       // Now move the drawing position a bit to where we want to
-      // start drawing the square.
+      // start drawing the cube.
       glm.mat4.translate(modelViewMatrix,     // destination matrix
                     modelViewMatrix,     // matrix to translate
                     shape.translation);  // amount to translate
@@ -295,16 +296,6 @@ export class AppComponent {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
       // Tell WebGL we want to affect texture unit 0
-      // const textIndexToGlTex = new Map([
-      //   [0, gl.TEXTURE0],
-      //   [1, gl.TEXTURE1],
-      //   [2, gl.TEXTURE2],
-      //   [3, gl.TEXTURE3],
-      //   [4, gl.TEXTURE4],
-      //   [5, gl.TEXTURE5],
-      //   [6, gl.TEXTURE6],
-      // ]);
-      // gl.activeTexture(textIndexToGlTex.get(shape.textureIndex));
       gl.activeTexture(gl.TEXTURE0);
 
       // Bind the texture to texture unit 0
@@ -398,13 +389,7 @@ export class AppComponent {
     // operations to from here out
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   
-    // Now create an array of positions for the square.
-    // const positions = [
-    //   -SQUARE_RADIUS,  SQUARE_RADIUS,
-    //   SQUARE_RADIUS,  SQUARE_RADIUS,
-    //   -SQUARE_RADIUS, -SQUARE_RADIUS,
-    //   SQUARE_RADIUS, -SQUARE_RADIUS,
-    // ];
+    // Cube
     const positions = [
       // Front face
       -1.0, -1.0,  1.0,
@@ -561,102 +546,6 @@ export class AppComponent {
     };
   }
 
-  /** Initialize a shader program, so WebGL knows how to draw our data. */
-  private initShaderProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string): WebGLProgram {
-    const vertexShader = this.loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-  
-    // Create the shader program
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-  
-    // If creating the shader program failed, alert
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-      alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-      return null;
-    }
-    return shaderProgram;
-  }
-  
-  /** Creates a shader of the given type, uploads the source and compiles it. */
-  private loadShader(gl: WebGLRenderingContext, type: number, source: string) {
-    const shader: WebGLShader = gl.createShader(type);
-    // Send the source to the shader object
-    gl.shaderSource(shader, source);
-    // Compile the shader program
-    gl.compileShader(shader);
-  
-    // See if it compiled successfully
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-      gl.deleteShader(shader);
-      return null;
-    }
-  
-    return shader;
-  }
-
-  /**
-   * Initialize a texture and load an image.
-   * When the image finished loading copy it into the texture.
-   */
-  private loadTexture(gl: WebGLRenderingContext, url: string): WebGLTexture {
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-
-    // Because images have to be download over the internet
-    // they might take a moment until they are ready.
-    // Until then put a single pixel in the texture so we can
-    // use it immediately. When the image has finished downloading
-    // we'll update the texture with the contents of the image.
-    const level = 0;
-    const internalFormat = gl.RGBA;
-    const width = 1;
-    const height = 1;
-    const border = 0;
-    const srcFormat = gl.RGBA;
-    const srcType = gl.UNSIGNED_BYTE;
-    const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                  width, height, border, srcFormat, srcType,
-                  pixel);
-
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.onload = () => {
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                    srcFormat, srcType, image);
-
-      // WebGL1 has different requirements for power of 2 images
-      // vs non power of 2 images so check if the image is a
-      // power of 2 in both dimensions.
-      if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-        // Yes, it's a power of 2. Generate mips.
-        gl.generateMipmap(gl.TEXTURE_2D);
-      } else {
-        // No, it's not a power of 2. Turn off mips and set
-        // wrapping to clamp to edge
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-        // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        // Prevents s-coordinate wrapping (repeating).
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        // Prevents t-coordinate wrapping (repeating).
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      }
-    };
-
-    image.src = url;
-
-    return texture;
-  }
-
   // Thanks
   // https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
   private resize() {
@@ -705,8 +594,4 @@ function getRandomRotationAxis(): number[] {
   const num = Math.random() * 2 * Math.PI;
   const sin = Math.sin(num);
   return [Math.cos(num), num < Math.PI ? sin : 0.0, num >= Math.PI ? sin : 0.0];
-}
-
-function isPowerOf2(value: number): boolean {
-  return (value & (value - 1)) == 0;
 }
