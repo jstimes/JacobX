@@ -39,9 +39,6 @@ interface Point {
   y: number;
 }
 
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
-
 const SQUARE_RADIUS = 1.0;
 const X_BOUNDS = 5.6;
 const Y_BOUNDS = 4.0;
@@ -111,8 +108,6 @@ export class AppComponent {
   ngOnInit() {
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     this.canvas = canvas;
-    canvas.setAttribute('width', `${CANVAS_WIDTH}`);
-    canvas.setAttribute('height', `${CANVAS_HEIGHT}`);
     canvas.addEventListener('mousedown', this.onMouseDown);
     canvas.addEventListener('mousemove', this.onMouseMove);
     canvas.addEventListener('mouseup', this.onMouseUp);
@@ -188,6 +183,8 @@ export class AppComponent {
   }
 
   render(gl: WebGLRenderingContext, programInfo: Program, buffers: Buffers) {
+    this.resize();
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -347,7 +344,7 @@ export class AppComponent {
     if (this.isShapeActive) {
       return;
     }
-    const glCoords = getGlCoords(e);
+    const glCoords = this.getGlCoords(e);
     this.isShapeActive = true;
     this.shapes.push({
       velocity: getRandomVelocity(),
@@ -364,7 +361,7 @@ export class AppComponent {
       return;
     }
     const activeShape = this.shapes[this.shapes.length - 1];
-    const glCoords = getGlCoords(e);
+    const glCoords = this.getGlCoords(e);
     activeShape.translation = [glCoords.x, glCoords.y, SHAPE_Z];
   }
 
@@ -659,19 +656,41 @@ export class AppComponent {
 
     return texture;
   }
+
+  // Thanks
+  // https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+  private resize() {
+    const realToCSSPixels = window.devicePixelRatio;
+
+    // Lookup the size the browser is displaying the canvas in CSS pixels
+    // and compute a size needed to make our drawingbuffer match it in
+    // device pixels.
+    const displayWidth  = Math.floor(this.gl.canvas.clientWidth  * realToCSSPixels);
+    const displayHeight = Math.floor(this.gl.canvas.clientHeight * realToCSSPixels);
+   
+    // Check if the canvas is not the same size.
+    if (this.canvas.width  !== displayWidth ||
+      this.canvas.height !== displayHeight) {
+   
+      // Make the canvas the same size
+      this.canvas.width  = displayWidth;
+      this.canvas.height = displayHeight;
+    }
+  }
+
+  private getGlCoords(e: MouseEvent): Point {
+    const x = e.clientX;
+    console.log("" + this.canvas.width + " " + this.canvas.height);
+    const y = this.canvas.height - e.clientY;
+    const glX = x * ((X_BOUNDS * 2) / this.canvas.width) - X_BOUNDS;
+    const glY = y * ((Y_BOUNDS * 2) / this.canvas.height) - Y_BOUNDS;
+    return {x: glX, y: glY};
+  }
 }
 
 function shapesOverlap(shapeA: Shape, shapeB: Shape): boolean {
   return Math.abs(shapeA.translation[0] - shapeB.translation[0]) < SQUARE_RADIUS * 2
       && Math.abs(shapeA.translation[1] - shapeB.translation[1]) < SQUARE_RADIUS * 2;
-}
-
-function getGlCoords(e: MouseEvent): Point {
-  const x = e.clientX;
-  const y = CANVAS_HEIGHT - e.clientY;
-  const glX = x * ((X_BOUNDS * 2) / CANVAS_WIDTH) - X_BOUNDS;
-  const glY = y * ((Y_BOUNDS * 2) / CANVAS_HEIGHT) - Y_BOUNDS;
-  return {x: glX, y: glY};
 }
 
 function getRandomVelocity(): number[] {
