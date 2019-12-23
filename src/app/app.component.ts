@@ -2,30 +2,13 @@ import { Component } from '@angular/core';
 import {mat4, vec3, vec4} from './gl-matrix.js'
 import {loadTexture, initShaderProgram, loadShader} from './gl_utils';
 
+import {GlProgram} from './gl_program';
+
 import {Car} from './car';
 import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
 
-interface AttribLocations {
-  vertexPosition: number;
-  vertexNormal: number;
-}
-interface UniformLocations {
-  projectionMatrix: WebGLUniformLocation;
-  modelViewMatrix: WebGLUniformLocation;
-  normalMatrix: WebGLUniformLocation;
-}
-interface Program {
-  program: WebGLProgram;
-  attribLocations: AttribLocations;
-  uniformLocations: UniformLocations;
-}
-
-interface Buffers {
-  position: WebGLBuffer;
-  normal: WebGLBuffer;
-}
 
 interface Point {
   x: number;
@@ -80,12 +63,10 @@ export class AppComponent {
   title = 'JacobX';
   canvas: HTMLCanvasElement;
   gl: WebGLRenderingContext;
-  program: Program;
-  buffers: Buffers;
   car: Car;
+  program: GlProgram;
 
   shouldUpdate = false;
-  translation = -30.0;
 
   ngOnInit() {
     this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -99,10 +80,10 @@ export class AppComponent {
         this.shouldUpdate = !this.shouldUpdate;
       }
       if (e.keyCode === 87) {
-        this.translation -= 1;
+        this.car.translation[2] -= 1;
       }
       if (e.keyCode === 83) {
-        this.translation += 1;
+        this.car.translation[2] += 1;
       }
     };
     
@@ -119,21 +100,8 @@ export class AppComponent {
     // Clear the color buffer with specified clear color
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-    const shaderProgram = initShaderProgram(this.gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
-    this.program = {
-      program: shaderProgram,
-      attribLocations: {
-        vertexPosition: this.gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-        vertexNormal: this.gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
-      },
-      uniformLocations: {
-        projectionMatrix: this.gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-        modelViewMatrix: this.gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-        normalMatrix: this.gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
-      },
-    };
-    this.car = new Car();
-    this.initBuffers();
+    this.program = new GlProgram(this.gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+    this.car = new Car(this.gl);
     this.gameLoop(0);
   }
 
@@ -195,66 +163,6 @@ export class AppComponent {
   
     const projectionMatrix = this.getProjectionMatrix();
   
-    // Set the drawing position to the "identity" point, which is
-    // the center of the scene.
-    const modelViewMatrix = mat4.create();
-    // Now move the drawing position a bit to where we want to
-    // start drawing the square.
-
-    mat4.translate(modelViewMatrix,     // destination matrix
-                  modelViewMatrix,     // matrix to translate
-                  [0, -6, this.translation]);  // amount to translate
-
-    mat4.rotate(modelViewMatrix,  // destination matrix
-      modelViewMatrix,  // matrix to rotate
-      this.car.rotationAngle,   // amount to rotate in radians
-      [0, 1, 0]);       // axis to rotate around
-
-    const normalMatrix = mat4.create();
-    mat4.invert(normalMatrix, modelViewMatrix);
-    mat4.transpose(normalMatrix, normalMatrix);
-
-    // Tell WebGL how to pull out the positions from the position
-    // buffer into the vertexPosition attribute.
-    {
-      const numComponents = 3;  // pull out 3 values per iteration
-      const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-      const normalize = false;  // don't normalize
-      const stride = 0;         // how many bytes to get from one set of values to the next
-                                // 0 = use type and numComponents above
-      const offset = 0;         // how many bytes inside the buffer to start from
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.position);
-      gl.vertexAttribPointer(
-          this.program.attribLocations.vertexPosition,
-          numComponents,
-          type,
-          normalize,
-          stride,
-          offset);
-      gl.enableVertexAttribArray(
-        this.program.attribLocations.vertexPosition);
-    }
-
-    // Tell WebGL how to pull out the normals from
-    // the normal buffer into the vertexNormal attribute.
-    {
-      const numComponents = 3;
-      const type = gl.FLOAT;
-      const normalize = false;
-      const stride = 0;
-      const offset = 0;
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.normal);
-      gl.vertexAttribPointer(
-          this.program.attribLocations.vertexNormal,
-          numComponents,
-          type,
-          normalize,
-          stride,
-          offset);
-      gl.enableVertexAttribArray(
-          this.program.attribLocations.vertexNormal);
-    }
-  
     // Tell WebGL to use our program when drawing
     gl.useProgram(this.program.program);
   
@@ -263,43 +171,8 @@ export class AppComponent {
         this.program.uniformLocations.projectionMatrix,
         false,
         projectionMatrix);
-    gl.uniformMatrix4fv(
-        this.program.uniformLocations.modelViewMatrix,
-        false,
-        modelViewMatrix);
-    gl.uniformMatrix4fv(
-        this.program.uniformLocations.normalMatrix,
-        false,
-        normalMatrix);
-  
-    {
-      const vertexCount = this.car.positions.length / 3;
-      const type = gl.UNSIGNED_SHORT;
-      const offset = 0;
-      // gl.LINE_STRIP
-      gl.drawArrays(gl.TRIANGLES, 0, vertexCount);
-    }
-  }
-
-  private initBuffers() {
-    const gl = this.gl;
-    this.car.init();
-
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,
-                  new Float32Array(this.car.positions),
-                  gl.STATIC_DRAW);
-
-    const normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.car.normals),
-                  gl.STATIC_DRAW);
-  
-    this.buffers = {
-      position: positionBuffer,
-      normal: normalBuffer,
-    };
+    
+    this.car.ren(this.gl, this.program);
   }
 
   // Thanks
