@@ -16,10 +16,10 @@ export class Square {
 
     clone(): Square {
         return new Square({
-        a: this.a,
-        b: this.b,
-        c: this.c,
-        d: this.d,
+            a: vec3.clone(this.a),
+            b: vec3.clone(this.b),
+            c: vec3.clone(this.c),
+            d: vec3.clone(this.d),
         });
     }
 

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {mat4, vec3, vec4} from './gl-matrix.js'
 import {loadTexture, initShaderProgram, loadShader} from './gl_utils';
 
+import {Car} from './car';
 import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
@@ -83,10 +84,27 @@ export class AppComponent {
   buffers: Buffers;
   car: Car;
 
+  shouldUpdate = false;
+  translation = -30.0;
+
   ngOnInit() {
     this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
     this.canvas.setAttribute('width', `${WIDTH}`);
     this.canvas.setAttribute('height', `${HEIGHT}`);
+
+    document.onkeydown = (e: KeyboardEvent) => {
+      console.log(e.keyCode);
+      if (e.keyCode === 32) {
+        // Space
+        this.shouldUpdate = !this.shouldUpdate;
+      }
+      if (e.keyCode === 87) {
+        this.translation -= 1;
+      }
+      if (e.keyCode === 83) {
+        this.translation += 1;
+      }
+    };
     
     this.gl = this.canvas.getContext('webgl');
   
@@ -133,7 +151,9 @@ export class AppComponent {
   }
   
   update(elapsedMs: number) {
-    // this.car.rotationAngle += elapsedMs / 1000;
+    if (this.shouldUpdate) {
+      this.car.rotationAngle += elapsedMs / 1000;
+    }
   }
 
   private getProjectionMatrix(): mat4 {
@@ -183,7 +203,7 @@ export class AppComponent {
 
     mat4.translate(modelViewMatrix,     // destination matrix
                   modelViewMatrix,     // matrix to translate
-                  [0, -6, -30]);  // amount to translate
+                  [0, -6, this.translation]);  // amount to translate
 
     mat4.rotate(modelViewMatrix,  // destination matrix
       modelViewMatrix,  // matrix to rotate
@@ -300,137 +320,6 @@ export class AppComponent {
       // Make the canvas the same size
       this.canvas.width  = displayWidth;
       this.canvas.height = displayHeight;
-    }
-  }
-}
-
-class Car {
-  rotationAngle: number = 0;
-  squares: Square[] = [];
-
-  positions: number[] = [];
-  normals: number[] = [];
-
-  constructor() {
-    const bodyWidth = 4;
-    const xOffset = bodyWidth / 2;
-    const groundOffset = 2;
-    const height = 4;
-    const yMin = groundOffset;
-    const yMax = groundOffset + height;
-    const length = 20;
-    const zOffset = length / 2;
-
-    const makeBody = true;
-
-    if (makeBody) {
-
-      // Front four car body vertices:
-      const tlf = makeVec(-xOffset, yMax, -zOffset);
-      const blf = makeVec(-xOffset, yMin, -zOffset);
-      const trf = makeVec(xOffset, yMax, -zOffset);
-      const brf = makeVec(xOffset, yMin, -zOffset);
-
-      // Back four vertices
-      const tlb = makeVec(-xOffset, yMax, zOffset);
-      const blb = makeVec(-xOffset, yMin, zOffset);
-      const trb = makeVec(xOffset, yMax, zOffset);
-      const brb = makeVec(xOffset, yMin, zOffset);
-
-      const frontFace: Square = new Square({
-        a: trf, b: brf, c: blf, d: tlf,
-      });
-      this.squares.push(frontFace);
-
-      const backFace: Square = new Square({
-        a: tlb, b: blb, c: brb, d: trb,
-      });
-      this.squares.push(backFace);
-      
-      const topFace: Square = new Square({
-        a: tlf, b: tlb, c: trb, d: trf,
-      });
-      this.squares.push(topFace);
-
-      const bottomFace: Square =  new Square({
-        a: brf, b: brb, c: blb, d: blf,
-      });
-      this.squares.push(bottomFace);
-      
-      const leftFace: Square =  new Square({
-        a: tlf, b: blf, c: blb, d: tlb,
-      });
-      this.squares.push(leftFace);
-
-      const rightFace: Square = new Square({
-        a: trb, b: brb, c: brf, d: trf,
-      });
-      this.squares.push(rightFace);
-    }
-
-    // WHEELS:
-    // Cylinder with circles on left,right
-    const wheelWidth = 2;
-    const wheelRadius = 2;
-    const wheelXOffset = wheelWidth / 2;
-
-    const wheelSquares: Square[] = [];
-    const circleSquares: Square[] = [];
-    const deltaTheta = Math.PI / 12;
-
-    // First make a circle centered at 0,0,0, about the x-axis
-    const circleCenter = makeVec(0, 0, 0);
-    for(let theta = 0; theta < Math.PI * 2; theta += deltaTheta) {
-      // X is fixed, z = cos, y = sin
-      const cosA = Math.cos(theta);
-      const sinA = Math.sin(theta);
-      const ptA = makeVec(0, sinA * wheelRadius, cosA * wheelRadius);
-      const cosB = Math.cos(theta + deltaTheta);
-      const sinB = Math.sin(theta + deltaTheta);
-      const ptB = makeVec(0, sinB * wheelRadius, cosB * wheelRadius);
-      circleSquares.push(new Square({a: ptB, b: circleCenter, c: circleCenter, d: ptA}));
-    }
-
-    // Then copy and translate the circle to make left and right faces of wheel:
-    circleSquares.forEach((sq: Square) => {
-      const leftSquare = sq.clone().translate(makeVec(-wheelXOffset, 0, 0));
-      // const rightSquare = sq.clone().translate(makeVec(wheelXOffset, 0, 0));
-      // wheelSquares.push(leftSquare);
-      // wheelSquares.push(rightSquare);
-
-      this.squares.push(leftSquare);
-    });
-
-    // THen copy all squares of a wheel and move them to each of the wheel positions.
-    const wheelZOffset = 6;
-    const frontLeftTrans = makeVec(-xOffset, groundOffset, -wheelZOffset);
-    wheelSquares.forEach((sq: Square) => {
-      const frontLeftWheel = sq.clone().translate(frontLeftTrans);
-
-      this.squares.push(frontLeftWheel);
-    });
-
-  }
-
-  init() {
-    this.positions = [];
-    this.normals = [];
-    const triangles: Triangle[] = [];
-    for (let square of this.squares) {
-      const triA = new Triangle(square.a, square.b, square.d);
-      const triB = new Triangle(square.b, square.c, square.d);
-      triangles.push(triA);
-      triangles.push(triB);
-    }
-    for (let triangle of triangles) {
-      const triNormal = triangle.getNormal();
-      vec3.normalize(triNormal, triNormal);
-      addVec(this.positions, triangle.a);
-      addVec(this.positions, triangle.b);
-      addVec(this.positions, triangle.c);
-      addVec(this.normals, triNormal);
-      addVec(this.normals, triNormal);
-      addVec(this.normals, triNormal);
     }
   }
 }
