@@ -108,47 +108,45 @@ export class AppComponent {
   private lastTime: number;
 
   ngOnInit() {
-    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    this.canvas = canvas;
-    canvas.addEventListener('mousedown', this.onMouseDown);
-    canvas.addEventListener('mousemove', this.onMouseMove);
-    canvas.addEventListener('mouseup', this.onMouseUp);
+    this.canvas = document.getElementById('canvas') as HTMLCanvasElement;;
+    this.canvas.addEventListener('mousedown', this.onMouseDown);
+    this.canvas.addEventListener('mousemove', this.onMouseMove);
+    this.canvas.addEventListener('mouseup', this.onMouseUp);
     
-    const gl = canvas.getContext('webgl');
-    this.gl = gl;
+    this.gl = this.canvas.getContext('webgl');
   
     // Only continue if WebGL is available and working
-    if (gl === null) {
+    if (this.gl === null) {
       alert("Unable to initialize WebGL. Your browser or machine may not support it.");
       return;
     }
   
     // Set clear color to black, fully opaque
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     // Clear the color buffer with specified clear color
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
     const numTextures = 6;
     for (let i=0; i< numTextures; i++) {
       this.textures.push(loadTexture(this.gl, `/assets/images/${i+1}.jpg`));
     }
 
-    const shaderProgram = initShaderProgram(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+    const shaderProgram = initShaderProgram(this.gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
     this.program = {
       program: shaderProgram,
       attribLocations: {
-        vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-        vertexNormal: gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
-        textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+        vertexPosition: this.gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+        vertexNormal: this.gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
+        textureCoord: this.gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
       },
       uniformLocations: {
-        projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-        modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-        normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
-        uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
+        projectionMatrix: this.gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+        modelViewMatrix: this.gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+        normalMatrix: this.gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
+        uSampler: this.gl.getUniformLocation(shaderProgram, 'uSampler'),
       },
     };
-    this.buffers = this.initBuffers(gl);
+    this.buffers = this.initBuffers(this.gl);
     this.gameLoop(0);
   }
 
