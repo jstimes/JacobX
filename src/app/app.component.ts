@@ -5,11 +5,13 @@ import {loadTexture, initShaderProgram, loadShader} from './gl_utils';
 import {GlProgram} from './gl_program';
 
 import {Car} from './car';
+import {Floor} from './floor';
 import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
 import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
+import {FLOOR_RENDERABLE} from 'src/app/renderables/floor_renderable';
 
 
 interface Point {
@@ -45,8 +47,6 @@ const VERTEX_SHADER_SOURCE = `
 const FRAGMENT_SHADER_SOURCE = `
   varying highp vec3 vLighting;
 
-  uniform sampler2D uSampler;
-
   void main() {
     highp vec4 vColor = vec4(1.0, 0.0, 0.0, 1.0);
     gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
@@ -66,6 +66,7 @@ export class AppComponent {
   canvas: HTMLCanvasElement;
   gl: WebGLRenderingContext;
   car: Car;
+  floor: Floor;
   program: GlProgram;
 
   shouldUpdate = false;
@@ -105,12 +106,14 @@ export class AppComponent {
     this.program = new GlProgram(this.gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
     this.initRenderables();
     this.car = new Car();
+    this.floor = new Floor();
     this.gameLoop(0);
   }
 
   initRenderables() {
     CAR_BODY.initBuffers(this.gl);
     WHEEL.initBuffers(this.gl);
+    FLOOR_RENDERABLE.initBuffers(this.gl);
   }
 
   lastTime = 0;
@@ -129,6 +132,7 @@ export class AppComponent {
   update(elapsedMs: number) {
     if (this.shouldUpdate) {
       this.car.rotationAngle += elapsedMs / 1000;
+      this.floor.update(elapsedMs);
     }
   }
 
@@ -181,6 +185,7 @@ export class AppComponent {
         projectionMatrix);
     
     this.car.render(this.gl, this.program);
+    this.floor.render(this.gl, this.program);
   }
 
   // Thanks

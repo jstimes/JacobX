@@ -1,5 +1,4 @@
 import {vec3, mat4} from '../gl-matrix.js';
-
 import {Renderable} from './renderable';
 import {Square} from '../square';
 import {Triangle} from '../triangle';
