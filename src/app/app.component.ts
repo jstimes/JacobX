@@ -4,11 +4,15 @@ import {loadTexture, initShaderProgram, loadShader} from './gl_utils';
 
 import {GlProgram} from './gl_program';
 
+import {Camera} from './camera';
+
 import {Car} from './car';
 import {Floor} from './floor';
+
 import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
+
 import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
 import {FLOOR_RENDERABLE} from 'src/app/renderables/floor_renderable';
@@ -24,13 +28,14 @@ const VERTEX_SHADER_SOURCE = `
   attribute vec3 aVertexNormal;
 
   uniform mat4 uNormalMatrix;
-  uniform mat4 uModelViewMatrix;
+  uniform mat4 uModelMatrix;
+  uniform mat4 uViewMatrix;
   uniform mat4 uProjectionMatrix;
 
   varying highp vec3 vLighting;
 
   void main() {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aVertexPosition;
 
     // Apply lighting effect
     highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
@@ -65,6 +70,9 @@ export class AppComponent {
   title = 'JacobX';
   canvas: HTMLCanvasElement;
   gl: WebGLRenderingContext;
+  projectionMatrix: mat4;
+  camera: Camera;
+
   car: Car;
   floor: Floor;
   program: GlProgram;
@@ -81,12 +89,30 @@ export class AppComponent {
       if (e.keyCode === 32) {
         // Space
         this.shouldUpdate = !this.shouldUpdate;
-      }
-      if (e.keyCode === 87) {
+      } else if (e.keyCode === 87) {
+        // 'W'
         this.car.translation[2] -= 1;
-      }
-      if (e.keyCode === 83) {
+      } else if (e.keyCode === 83) {
+        // 'S'
         this.car.translation[2] += 1;
+      } else if (e.keyCode === 73) {
+        // 'I'
+        this.camera.moveUp();
+      } else if (e.keyCode === 75) {
+        // 'K'
+        this.camera.moveDown();
+      } else if (e.keyCode === 79) {
+        // 'O'
+        this.camera.zoomIn();
+      } else if (e.keyCode === 80) {
+        // 'P'
+        this.camera.zoomOut();
+      } else if (e.keyCode === 74) {
+        // 'J'
+        this.camera.orbitLeft();
+      }else if (e.keyCode === 76) {
+        // 'K'
+        this.camera.orbitRight();
       }
     };
     
@@ -105,6 +131,11 @@ export class AppComponent {
 
     this.program = new GlProgram(this.gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
     this.initRenderables();
+
+    this.camera = new Camera();
+
+    this.projectionMatrix = this.createProjectionMatrix();
+
     this.car = new Car();
     this.floor = new Floor();
     this.gameLoop(0);
@@ -136,7 +167,7 @@ export class AppComponent {
     }
   }
 
-  private getProjectionMatrix(): mat4 {
+  private createProjectionMatrix(): mat4 {
     const projectionMatrix = mat4.create();
 
     // Create a perspective matrix, a special matrix that is
@@ -167,13 +198,12 @@ export class AppComponent {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
+    gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
   
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  
-    const projectionMatrix = this.getProjectionMatrix();
   
     // Tell WebGL to use our program when drawing
     gl.useProgram(this.program.program);
@@ -182,7 +212,12 @@ export class AppComponent {
     gl.uniformMatrix4fv(
         this.program.uniformLocations.projectionMatrix,
         false,
-        projectionMatrix);
+        this.projectionMatrix);
+
+    gl.uniformMatrix4fv(
+      this.program.uniformLocations.viewMatrix,
+      false,
+      this.camera.getViewMatrix());
     
     this.car.render(this.gl, this.program);
     this.floor.render(this.gl, this.program);

@@ -6,7 +6,8 @@ interface AttribLocations {
 }
 interface UniformLocations {
     projectionMatrix: WebGLUniformLocation;
-    modelViewMatrix: WebGLUniformLocation;
+    viewMatrix: WebGLUniformLocation;
+    modelMatrix: WebGLUniformLocation;
     normalMatrix: WebGLUniformLocation;
 }
 
@@ -24,7 +25,8 @@ export class GlProgram {
         };
         this.uniformLocations = {
             projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-            modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+            modelMatrix: gl.getUniformLocation(shaderProgram, 'uModelMatrix'),
+            viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
             normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
         };
     }

@@ -29,9 +29,7 @@ export abstract class Renderable {
 
     render(gl: WebGLRenderingContext, program: GlProgram, modelMatrix: mat4) {
 
-        // Projection matrix uniform is expected to be set already.
-
-        // View matrix?
+        // Projection & view matrices uniform is expected to be set already.
 
         const normalMatrix = mat4.create();
         mat4.invert(normalMatrix, modelMatrix);
@@ -83,7 +81,7 @@ export abstract class Renderable {
         
         // Set the shader uniforms
         gl.uniformMatrix4fv(
-            program.uniformLocations.modelViewMatrix,
+            program.uniformLocations.modelMatrix,
             false,
             modelMatrix);
         gl.uniformMatrix4fv(
