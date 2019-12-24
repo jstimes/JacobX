@@ -80,64 +80,64 @@ class CarBodyRenderable extends Renderable {
 
     // WHEELS:
     // Cylinder with circles on left,right
-    const wheelWidth = 2;
-    const wheelRadius = 2;
-    const wheelXOffset = wheelWidth / 2;
+    // const wheelWidth = 2;
+    // const wheelRadius = 2;
+    // const wheelXOffset = wheelWidth / 2;
 
-    const wheelSquares: Square[] = [];
-    const circleSquares: Square[] = [];
-    const deltaTheta = Math.PI / 8;
+    // const wheelSquares: Square[] = [];
+    // const circleSquares: Square[] = [];
+    // const deltaTheta = Math.PI / 8;
 
-    // First make a circle centered at 0,0,0, about the x-axis
-    const circleCenter = makeVec(0, 0, 0);
-    for(let theta = 0; theta < Math.PI * 2; theta += deltaTheta) {
-      // X is fixed, z = cos, y = sin
-      const cosA = Math.cos(theta);
-      const sinA = Math.sin(theta);
-      const ptA = makeVec(0, sinA * wheelRadius, cosA * wheelRadius);
-      const cosB = Math.cos(theta + deltaTheta);
-      const sinB = Math.sin(theta + deltaTheta);
-      const ptB = makeVec(0, sinB * wheelRadius, cosB * wheelRadius);
-      circleSquares.push(new Square({
-          a: ptB, 
-          b: vec3.clone(circleCenter), 
-          c: vec3.clone(circleCenter), 
-          d: ptA,
-      }));
-    }
+    // // First make a circle centered at 0,0,0, about the x-axis
+    // const circleCenter = makeVec(0, 0, 0);
+    // for(let theta = 0; theta < Math.PI * 2; theta += deltaTheta) {
+    //   // X is fixed, z = cos, y = sin
+    //   const cosA = Math.cos(theta);
+    //   const sinA = Math.sin(theta);
+    //   const ptA = makeVec(0, sinA * wheelRadius, cosA * wheelRadius);
+    //   const cosB = Math.cos(theta + deltaTheta);
+    //   const sinB = Math.sin(theta + deltaTheta);
+    //   const ptB = makeVec(0, sinB * wheelRadius, cosB * wheelRadius);
+    //   circleSquares.push(new Square({
+    //       a: ptB, 
+    //       b: vec3.clone(circleCenter), 
+    //       c: vec3.clone(circleCenter), 
+    //       d: ptA,
+    //   }));
+    // }
 
-    // Then copy and translate the circle to make left and right faces of wheel:
-    circleSquares.forEach((sq: Square) => {
-      const leftSquare = sq.clone().translate(makeVec(-wheelXOffset, 0, 0));
-      const rightSquare = sq.clone().translate(makeVec(wheelXOffset, 0, 0));
-      const cylinderSquare = new Square({
-          a: vec3.clone(leftSquare.a),
-          b: vec3.clone(leftSquare.d),
-          c: vec3.clone(rightSquare.d),
-          d: vec3.clone(rightSquare.a),
-      });
-      wheelSquares.push(leftSquare);
-      wheelSquares.push(rightSquare);
-      wheelSquares.push(cylinderSquare);
-    });
+    // // Then copy and translate the circle to make left and right faces of wheel:
+    // circleSquares.forEach((sq: Square) => {
+    //   const leftSquare = sq.clone().translate(makeVec(-wheelXOffset, 0, 0));
+    //   const rightSquare = sq.clone().translate(makeVec(wheelXOffset, 0, 0));
+    //   const cylinderSquare = new Square({
+    //       a: vec3.clone(leftSquare.a),
+    //       b: vec3.clone(leftSquare.d),
+    //       c: vec3.clone(rightSquare.d),
+    //       d: vec3.clone(rightSquare.a),
+    //   });
+    //   wheelSquares.push(leftSquare);
+    //   wheelSquares.push(rightSquare);
+    //   wheelSquares.push(cylinderSquare);
+    // });
 
-    // THen copy all squares of a wheel and move them to each of the wheel positions.
-    const wheelZOffset = 6;
-    const frontLeftTrans = makeVec(-xOffset, groundOffset, -wheelZOffset);
-    const backLeftTrans = makeVec(-xOffset, groundOffset, wheelZOffset);
-    const backRightTrans = makeVec(xOffset, groundOffset, wheelZOffset);
-    const frontRightTrans = makeVec(xOffset, groundOffset, -wheelZOffset);
-    wheelSquares.forEach((sq: Square) => {
-      const frontLeftWheel = sq.clone().translate(frontLeftTrans);
-      const backLeftWheel = sq.clone().translate(backLeftTrans);
-      const backRightWheel = sq.clone().translate(backRightTrans);
-      const frontRightWheel = sq.clone().translate(frontRightTrans);
+    // // THen copy all squares of a wheel and move them to each of the wheel positions.
+    // const wheelZOffset = 6;
+    // const frontLeftWheelPosition = makeVec(-xOffset, groundOffset, -wheelZOffset);
+    // const backLeftWheelPosition = makeVec(-xOffset, groundOffset, wheelZOffset);
+    // const backRightWheelPosition = makeVec(xOffset, groundOffset, wheelZOffset);
+    // const frontRightWheelPosition = makeVec(xOffset, groundOffset, -wheelZOffset);
+    // wheelSquares.forEach((sq: Square) => {
+    //   const frontLeftWheel = sq.clone().translate(frontLeftTrans);
+    //   const backLeftWheel = sq.clone().translate(backLeftTrans);
+    //   const backRightWheel = sq.clone().translate(backRightTrans);
+    //   const frontRightWheel = sq.clone().translate(frontRightTrans);
 
-      squares.push(frontLeftWheel);
-      squares.push(backLeftWheel);
-      squares.push(backRightWheel);
-      squares.push(frontRightWheel);
-    });
+    //   squares.push(frontLeftWheel);
+    //   squares.push(backLeftWheel);
+    //   squares.push(backRightWheel);
+    //   squares.push(frontRightWheel);
+    // });
 
     this.positions = [];
     this.normals = [];

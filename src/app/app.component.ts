@@ -9,6 +9,7 @@ import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
 import { CAR_BODY } from 'src/app/renderables/car_body';
+import { WHEEL } from 'src/app/renderables/wheel_renderable';
 
 
 interface Point {
@@ -109,6 +110,7 @@ export class AppComponent {
 
   initRenderables() {
     CAR_BODY.initBuffers(this.gl);
+    WHEEL.initBuffers(this.gl);
   }
 
   lastTime = 0;
