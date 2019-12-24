@@ -1,6 +1,6 @@
-import {mat4} from './gl-matrix.js';
-import {Buffers} from './buffers';
-import {GlProgram} from './gl_program';
+import {mat4} from '../gl-matrix.js';
+import {Buffers} from '../buffers';
+import {GlProgram} from '../gl_program';
 
 export abstract class Renderable {
 
@@ -9,7 +9,7 @@ export abstract class Renderable {
     abstract getPositions(): number[];
     abstract getNormals(): number[];
 
-    protected initBuffers(gl: WebGLRenderingContext) {    
+    initBuffers(gl: WebGLRenderingContext) {    
         const positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER,

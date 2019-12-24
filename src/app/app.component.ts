@@ -8,6 +8,7 @@ import {Car} from './car';
 import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
+import { CAR_BODY } from 'src/app/renderables/car_body';
 
 
 interface Point {
@@ -101,8 +102,13 @@ export class AppComponent {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
     this.program = new GlProgram(this.gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
-    this.car = new Car(this.gl);
+    this.initRenderables();
+    this.car = new Car();
     this.gameLoop(0);
+  }
+
+  initRenderables() {
+    CAR_BODY.initBuffers(this.gl);
   }
 
   lastTime = 0;
@@ -172,7 +178,7 @@ export class AppComponent {
         false,
         projectionMatrix);
     
-    this.car.ren(this.gl, this.program);
+    this.car.render(this.gl, this.program);
   }
 
   // Thanks
