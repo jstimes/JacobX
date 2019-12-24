@@ -245,6 +245,8 @@ export class AppComponent {
       this.canvas.width  = displayWidth;
       this.canvas.height = displayHeight;
     }
+
+    this.projectionMatrix = this.createProjectionMatrix();
   }
 }
 
