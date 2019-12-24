@@ -9,6 +9,8 @@ import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
 
 export class Car {
+  bodyColor = [1, 0, 0, 1];
+  wheelColor = [.2, .2, .2, 1];
   rotationAngle: number = 0;
   translation: number[] = [0, -6.0, -30];
 
@@ -39,8 +41,10 @@ export class Car {
         this.rotationAngle,   // amount to rotate in radians
         [0, 1, 0]);       // axis to rotate around
 
+    gl.uniform4fv(program.uniformLocations.colorVec, this.bodyColor);
     CAR_BODY.render(gl, program, carBodyModelViewMatrix);
 
+    gl.uniform4fv(program.uniformLocations.colorVec, this.wheelColor);
     this.renderWheel(carBodyModelViewMatrix, this.frontLeftWheelPosition, gl, program);
     this.renderWheel(carBodyModelViewMatrix, this.backLeftWheelPosition, gl, program);
     this.renderWheel(carBodyModelViewMatrix, this.backRightWheelPosition, gl, program);

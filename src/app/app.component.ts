@@ -27,12 +27,14 @@ const VERTEX_SHADER_SOURCE = `
   attribute vec4 aVertexPosition;
   attribute vec3 aVertexNormal;
 
+  uniform vec4 uColor;
   uniform mat4 uNormalMatrix;
   uniform mat4 uModelMatrix;
   uniform mat4 uViewMatrix;
   uniform mat4 uProjectionMatrix;
 
   varying highp vec3 vLighting;
+  varying highp vec4 vColor;
 
   void main() {
     gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aVertexPosition;
@@ -46,14 +48,15 @@ const VERTEX_SHADER_SOURCE = `
 
     highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
     vLighting = ambientLight + (directionalLightColor * directional);
+    vColor = uColor;
   }
 `;
 
 const FRAGMENT_SHADER_SOURCE = `
   varying highp vec3 vLighting;
+  varying highp vec4 vColor;
 
   void main() {
-    highp vec4 vColor = vec4(1.0, 0.0, 0.0, 1.0);
     gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
   }
 `;

@@ -5,6 +5,7 @@ interface AttribLocations {
     vertexNormal: number;
 }
 interface UniformLocations {
+    colorVec: WebGLUniformLocation;
     projectionMatrix: WebGLUniformLocation;
     viewMatrix: WebGLUniformLocation;
     modelMatrix: WebGLUniformLocation;
@@ -24,6 +25,7 @@ export class GlProgram {
             vertexNormal: gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
         };
         this.uniformLocations = {
+            colorVec: gl.getUniformLocation(shaderProgram, 'uColor'),
             projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
             modelMatrix: gl.getUniformLocation(shaderProgram, 'uModelMatrix'),
             viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
