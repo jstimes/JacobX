@@ -8,7 +8,7 @@ import {Car} from './car';
 import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
-import { CAR_BODY } from 'src/app/renderables/car_body';
+import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
 
 

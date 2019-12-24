@@ -1,18 +1,13 @@
 import { Component } from '@angular/core';
-import * as glm from './gl-matrix.js'
-
-import {loadTexture, initShaderProgram, loadShader} from './gl_utils';
+import * as glm from '../gl-matrix.js'
 
 interface AttribLocations {
   vertexPosition: number;
-  vertexNormal: number;
-  textureCoord: number;
+  vertexColor: number;
 }
 interface UniformLocations {
   projectionMatrix: WebGLUniformLocation;
   modelViewMatrix: WebGLUniformLocation;
-  normalMatrix: WebGLUniformLocation;
-  uSampler: WebGLUniformLocation;
 }
 interface Program {
   program: WebGLProgram;
@@ -22,8 +17,7 @@ interface Program {
 
 interface Buffers {
   position: WebGLBuffer;
-  normal: WebGLBuffer;
-  textureCoord: WebGLBuffer;
+  color: WebGLBuffer;
   indices: WebGLBuffer;
 }
 
@@ -33,13 +27,15 @@ interface Shape {
   rotation: number;
   rotationSpeed: number;
   rotationAxis: number[];
-  textureIndex: number;
 }
 
 interface Point {
   x: number;
   y: number;
 }
+
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 600;
 
 const SQUARE_RADIUS = 1.0;
 const X_BOUNDS = 5.6;
@@ -50,42 +46,24 @@ const SHAPE_Z = -12.0;
 
 const VERTEX_SHADER_SOURCE = `
   attribute vec4 aVertexPosition;
-  attribute vec3 aVertexNormal;
-  attribute vec2 aTextureCoord;
+  attribute vec4 aVertexColor;
 
-  uniform mat4 uNormalMatrix;
   uniform mat4 uModelViewMatrix;
   uniform mat4 uProjectionMatrix;
 
-  varying highp vec2 vTextureCoord;
-  varying highp vec3 vLighting;
+  varying lowp vec4 vColor;
 
   void main() {
     gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-    vTextureCoord = aTextureCoord;
-
-    // Apply lighting effect
-    highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
-    highp vec3 directionalLightColor = vec3(1, 1, 1);
-    highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
-
-    highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-
-    highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-    vLighting = ambientLight + (directionalLightColor * directional);
+    vColor = aVertexColor;
   }
 `;
 
 const FRAGMENT_SHADER_SOURCE = `
-  varying highp vec2 vTextureCoord;
-  varying highp vec3 vLighting;
-
-  uniform sampler2D uSampler;
+  varying lowp vec4 vColor;
 
   void main() {
-    highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
-
-    gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
+    gl_FragColor = vColor;
   }
 `;
 
@@ -94,59 +72,53 @@ const FRAGMENT_SHADER_SOURCE = `
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class GlTexturedCube {
+export class AppComponent {
   title = 'JacobX';
   canvas: HTMLCanvasElement;
   gl: WebGLRenderingContext;
   program: Program;
   buffers: Buffers;
 
-  textures: WebGLTexture[] = [];
-
   private shapes: Shape[] = [];
   private isShapeActive = false;
   private lastTime: number;
 
   ngOnInit() {
-    this.canvas = document.getElementById('canvas') as HTMLCanvasElement;;
-    this.canvas.addEventListener('mousedown', this.onMouseDown);
-    this.canvas.addEventListener('mousemove', this.onMouseMove);
-    this.canvas.addEventListener('mouseup', this.onMouseUp);
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    this.canvas = canvas;
+    canvas.setAttribute('width', `${CANVAS_WIDTH}`);
+    canvas.setAttribute('height', `${CANVAS_HEIGHT}`);
+    canvas.addEventListener('mousedown', this.onMouseDown);
+    canvas.addEventListener('mousemove', this.onMouseMove);
+    canvas.addEventListener('mouseup', this.onMouseUp);
     
-    this.gl = this.canvas.getContext('webgl');
+    const gl = canvas.getContext('webgl');
+    this.gl = gl;
   
     // Only continue if WebGL is available and working
-    if (this.gl === null) {
+    if (gl === null) {
       alert("Unable to initialize WebGL. Your browser or machine may not support it.");
       return;
     }
   
     // Set clear color to black, fully opaque
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     // Clear the color buffer with specified clear color
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
-    const numTextures = 6;
-    for (let i=0; i< numTextures; i++) {
-      this.textures.push(loadTexture(this.gl, `/assets/images/${i+1}.jpg`));
-    }
-
-    const shaderProgram = initShaderProgram(this.gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+    const shaderProgram = this.initShaderProgram(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
     this.program = {
       program: shaderProgram,
       attribLocations: {
-        vertexPosition: this.gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-        vertexNormal: this.gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
-        textureCoord: this.gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+        vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+        vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
       },
       uniformLocations: {
-        projectionMatrix: this.gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-        modelViewMatrix: this.gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-        normalMatrix: this.gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
-        uSampler: this.gl.getUniformLocation(shaderProgram, 'uSampler'),
+        projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+        modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
       },
     };
-    this.buffers = this.initBuffers(this.gl);
+    this.buffers = this.initBuffers(gl);
     this.gameLoop(0);
   }
 
@@ -183,14 +155,13 @@ export class GlTexturedCube {
   }
 
   render(gl: WebGLRenderingContext, programInfo: Program, buffers: Buffers) {
-    this.resize();
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
   
     // Clear the canvas before we start drawing on it.
+  
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
     // Create a perspective matrix, a special matrix that is
@@ -215,28 +186,22 @@ export class GlTexturedCube {
                      zFar);
   
     for (let i=0; i<this.shapes.length; i++) {
-      const shape = this.shapes[i];
       // Set the drawing position to the "identity" point, which is
       // the center of the scene.
       const modelViewMatrix = glm.mat4.create();
       // Now move the drawing position a bit to where we want to
-      // start drawing the cube.
+      // start drawing the square.
       glm.mat4.translate(modelViewMatrix,     // destination matrix
                     modelViewMatrix,     // matrix to translate
-                    shape.translation);  // amount to translate
+                    this.shapes[i].translation);  // amount to translate
 
       // glm.mat4.rotate(modelViewMatrix,  // destination matrix
       //                 modelViewMatrix,  // matrix to rotate
       //                 this.shapes[i].rotation,   // amount to rotate in radians
       //               [0, 0, 1]);       // axis to rotate around
 
-      glm.mat4.rotate(modelViewMatrix, modelViewMatrix, shape.rotation, shape.rotationAxis);
+      glm.mat4.rotate(modelViewMatrix, modelViewMatrix, this.shapes[i].rotation, this.shapes[i].rotationAxis);
     
-
-      const normalMatrix = glm.mat4.create();
-      glm.mat4.invert(normalMatrix, modelViewMatrix);
-      glm.mat4.transpose(normalMatrix, normalMatrix);
-
       // Tell WebGL how to pull out the positions from the position
       // buffer into the vertexPosition attribute.
       {
@@ -258,50 +223,28 @@ export class GlTexturedCube {
             programInfo.attribLocations.vertexPosition);
       }
 
-      // Tell WebGL how to pull out the normals from
-      // the normal buffer into the vertexNormal attribute.
+      // Tell WebGL how to pull out the colors from the color buffer
+      // into the vertexColor attribute.
       {
-        const numComponents = 3;
+        const numComponents = 4;
         const type = gl.FLOAT;
         const normalize = false;
         const stride = 0;
         const offset = 0;
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
         gl.vertexAttribPointer(
-            programInfo.attribLocations.vertexNormal,
+            programInfo.attribLocations.vertexColor,
             numComponents,
             type,
             normalize,
             stride,
             offset);
         gl.enableVertexAttribArray(
-            programInfo.attribLocations.vertexNormal);
-      }
-
-      // tell webgl how to pull out the texture coordinates from buffer
-      {
-          const num = 2; // every coordinate composed of 2 values
-          const type = gl.FLOAT; // the data in the buffer is 32 bit float
-          const normalize = false; // don't normalize
-          const stride = 0; // how many bytes to get from one set to the next
-          const offset = 0; // how many bytes inside the buffer to start from
-          gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
-          gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, num, type, normalize, stride, offset);
-          gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+            programInfo.attribLocations.vertexColor);
       }
 
       // Tell WebGL which indices to use to index the vertices
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-      // Tell WebGL we want to affect texture unit 0
-      gl.activeTexture(gl.TEXTURE0);
-
-      // Bind the texture to texture unit 0
-      gl.bindTexture(gl.TEXTURE_2D, this.textures[shape.textureIndex]);
-
-      // Tell the shader we bound the texture to texture unit 0
-      gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
-
     
       // Tell WebGL to use our program when drawing
       gl.useProgram(programInfo.program);
@@ -315,10 +258,6 @@ export class GlTexturedCube {
           programInfo.uniformLocations.modelViewMatrix,
           false,
           modelViewMatrix);
-      gl.uniformMatrix4fv(
-          programInfo.uniformLocations.normalMatrix,
-          false,
-          normalMatrix);
     
       {
         const vertexCount = 36;
@@ -333,7 +272,7 @@ export class GlTexturedCube {
     if (this.isShapeActive) {
       return;
     }
-    const glCoords = this.getGlCoords(e);
+    const glCoords = getGlCoords(e);
     this.isShapeActive = true;
     this.shapes.push({
       velocity: getRandomVelocity(),
@@ -341,7 +280,6 @@ export class GlTexturedCube {
       rotation: Math.random() * Math.PI * 2,
       rotationSpeed: 1.0,
       rotationAxis: getRandomRotationAxis(),
-      textureIndex: Math.floor(Math.random() * this.textures.length),
     });
   };
 
@@ -350,7 +288,7 @@ export class GlTexturedCube {
       return;
     }
     const activeShape = this.shapes[this.shapes.length - 1];
-    const glCoords = this.getGlCoords(e);
+    const glCoords = getGlCoords(e);
     activeShape.translation = [glCoords.x, glCoords.y, SHAPE_Z];
   }
 
@@ -387,7 +325,13 @@ export class GlTexturedCube {
     // operations to from here out
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   
-    // Cube
+    // Now create an array of positions for the square.
+    // const positions = [
+    //   -SQUARE_RADIUS,  SQUARE_RADIUS,
+    //   SQUARE_RADIUS,  SQUARE_RADIUS,
+    //   -SQUARE_RADIUS, -SQUARE_RADIUS,
+    //   SQUARE_RADIUS, -SQUARE_RADIUS,
+    // ];
     const positions = [
       // Front face
       -1.0, -1.0,  1.0,
@@ -433,88 +377,28 @@ export class GlTexturedCube {
                   new Float32Array(positions),
                   gl.STATIC_DRAW);
 
-    const normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-  
-    const vertexNormals = [
-      // Front
-        0.0,  0.0,  1.0,
-        0.0,  0.0,  1.0,
-        0.0,  0.0,  1.0,
-        0.0,  0.0,  1.0,
-  
-      // Back
-        0.0,  0.0, -1.0,
-        0.0,  0.0, -1.0,
-        0.0,  0.0, -1.0,
-        0.0,  0.0, -1.0,
-  
-      // Top
-        0.0,  1.0,  0.0,
-        0.0,  1.0,  0.0,
-        0.0,  1.0,  0.0,
-        0.0,  1.0,  0.0,
-  
-      // Bottom
-        0.0, -1.0,  0.0,
-        0.0, -1.0,  0.0,
-        0.0, -1.0,  0.0,
-        0.0, -1.0,  0.0,
-  
-      // Right
-        1.0,  0.0,  0.0,
-        1.0,  0.0,  0.0,
-        1.0,  0.0,  0.0,
-        1.0,  0.0,  0.0,
-  
-      // Left
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0
+    const faceColors = [
+      [1.0,  1.0,  1.0,  1.0],    // Front face: white
+      [1.0,  0.0,  0.0,  1.0],    // Back face: red
+      [0.0,  1.0,  0.0,  1.0],    // Top face: green
+      [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+      [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+      [1.0,  0.0,  1.0,  1.0],    // Left face: purple
     ];
   
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
-                  gl.STATIC_DRAW);
-
-    const textureCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+    // Convert the array of colors into a table for all the vertices.
+    let colors = [];
   
-    const textureCoordinates = [
-      // Front
-      0.0,  0.0,
-      1.0,  0.0,
-      1.0,  1.0,
-      0.0,  1.0,
-      // Back
-      0.0,  0.0,
-      1.0,  0.0,
-      1.0,  1.0,
-      0.0,  1.0,
-      // Top
-      0.0,  0.0,
-      1.0,  0.0,
-      1.0,  1.0,
-      0.0,  1.0,
-      // Bottom
-      0.0,  0.0,
-      1.0,  0.0,
-      1.0,  1.0,
-      0.0,  1.0,
-      // Right
-      0.0,  0.0,
-      1.0,  0.0,
-      1.0,  1.0,
-      0.0,  1.0,
-      // Left
-      0.0,  0.0,
-      1.0,  0.0,
-      1.0,  1.0,
-      0.0,  1.0,
-    ];
+    for (let j = 0; j < faceColors.length; ++j) {
+      const c = faceColors[j];
   
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
-                  gl.STATIC_DRAW);
+      // Repeat each color four times for the four vertices of the face
+      colors = colors.concat(c, c, c, c);
+    }
+  
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
     const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -538,46 +422,60 @@ export class GlTexturedCube {
   
     return {
       position: positionBuffer,
-      normal: normalBuffer,
-      textureCoord: textureCoordBuffer,
+      color: colorBuffer,
       indices: indexBuffer,
     };
   }
 
-  // Thanks
-  // https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
-  private resize() {
-    const realToCSSPixels = window.devicePixelRatio;
-
-    // Lookup the size the browser is displaying the canvas in CSS pixels
-    // and compute a size needed to make our drawingbuffer match it in
-    // device pixels.
-    const displayWidth  = Math.floor(this.gl.canvas.clientWidth  * realToCSSPixels);
-    const displayHeight = Math.floor(this.gl.canvas.clientHeight * realToCSSPixels);
-   
-    // Check if the canvas is not the same size.
-    if (this.canvas.width  !== displayWidth ||
-      this.canvas.height !== displayHeight) {
-   
-      // Make the canvas the same size
-      this.canvas.width  = displayWidth;
-      this.canvas.height = displayHeight;
+  /** Initialize a shader program, so WebGL knows how to draw our data. */
+  private initShaderProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string): WebGLProgram {
+    const vertexShader = this.loadShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+  
+    // Create the shader program
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+  
+    // If creating the shader program failed, alert
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+      alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+      return null;
     }
+    return shaderProgram;
   }
-
-  private getGlCoords(e: MouseEvent): Point {
-    const x = e.clientX;
-    console.log("" + this.canvas.width + " " + this.canvas.height);
-    const y = this.canvas.height - e.clientY;
-    const glX = x * ((X_BOUNDS * 2) / this.canvas.width) - X_BOUNDS;
-    const glY = y * ((Y_BOUNDS * 2) / this.canvas.height) - Y_BOUNDS;
-    return {x: glX, y: glY};
+  
+  /** Creates a shader of the given type, uploads the source and compiles it. */
+  private loadShader(gl: WebGLRenderingContext, type: number, source: string) {
+    const shader: WebGLShader = gl.createShader(type);
+    // Send the source to the shader object
+    gl.shaderSource(shader, source);
+    // Compile the shader program
+    gl.compileShader(shader);
+  
+    // See if it compiled successfully
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
+    }
+  
+    return shader;
   }
 }
 
 function shapesOverlap(shapeA: Shape, shapeB: Shape): boolean {
   return Math.abs(shapeA.translation[0] - shapeB.translation[0]) < SQUARE_RADIUS * 2
       && Math.abs(shapeA.translation[1] - shapeB.translation[1]) < SQUARE_RADIUS * 2;
+}
+
+function getGlCoords(e: MouseEvent): Point {
+  const x = e.clientX;
+  const y = CANVAS_HEIGHT - e.clientY;
+  const glX = x * ((X_BOUNDS * 2) / CANVAS_WIDTH) - X_BOUNDS;
+  const glY = y * ((Y_BOUNDS * 2) / CANVAS_HEIGHT) - Y_BOUNDS;
+  return {x: glX, y: glY};
 }
 
 function getRandomVelocity(): number[] {
@@ -592,4 +490,8 @@ function getRandomRotationAxis(): number[] {
   const num = Math.random() * 2 * Math.PI;
   const sin = Math.sin(num);
   return [Math.cos(num), num < Math.PI ? sin : 0.0, num >= Math.PI ? sin : 0.0];
+}
+
+function isPowerOf2(value: number): boolean {
+  return (value & (value - 1)) == 0;
 }

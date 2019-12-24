@@ -21,7 +21,8 @@ class WheelRenderable extends Renderable {
   constructor() {
     super();
 
-    const squares = [];
+    const squares: Square[] = [];
+    const triangles: Triangle[] = [];
 
     // WHEELS:
     // Cylinder with circles on left,right
@@ -30,10 +31,11 @@ class WheelRenderable extends Renderable {
     const wheelXOffset = wheelWidth / 2;
 
     const wheelSquares: Square[] = [];
-    const circleSquares: Square[] = [];
-    const deltaTheta = Math.PI / 8;
+    const deltaTheta = Math.PI / 12;
 
     // First make a circle centered at 0,0,0, about the x-axis
+    // Normal is going left, negative x axis.
+    const circleTriangles = [];
     const circleCenter = makeVec(0, 0, 0);
     for(let theta = 0; theta < Math.PI * 2; theta += deltaTheta) {
       // X is fixed, z = cos, y = sin
@@ -43,32 +45,26 @@ class WheelRenderable extends Renderable {
       const cosB = Math.cos(theta + deltaTheta);
       const sinB = Math.sin(theta + deltaTheta);
       const ptB = makeVec(0, sinB * wheelRadius, cosB * wheelRadius);
-      circleSquares.push(new Square({
-          a: ptB, 
-          b: vec3.clone(circleCenter), 
-          c: vec3.clone(circleCenter), 
-          d: ptA,
-      }));
+      circleTriangles.push(new Triangle(ptB,  vec3.clone(circleCenter), ptA));
     }
 
     // Then copy and translate the circle to make left and right faces of wheel:
-    circleSquares.forEach((sq: Square) => {
-      const leftSquare = sq.clone().translate(makeVec(-wheelXOffset, 0, 0));
-      const rightSquare = sq.clone().translate(makeVec(wheelXOffset, 0, 0));
+    circleTriangles.forEach((tri: Triangle) => {
+      const leftTriangle = tri.clone().translate(makeVec(-wheelXOffset, 0, 0));
+      const rightTriangle = tri.clone().translate(makeVec(wheelXOffset, 0, 0)).flip();
       const cylinderSquare = new Square({
-          a: vec3.clone(leftSquare.a),
-          b: vec3.clone(leftSquare.d),
-          c: vec3.clone(rightSquare.d),
-          d: vec3.clone(rightSquare.a),
+          a: vec3.clone(leftTriangle.a),
+          b: vec3.clone(leftTriangle.c),
+          c: vec3.clone(rightTriangle.a),
+          d: vec3.clone(rightTriangle.c),
       });
-      squares.push(leftSquare);
-      squares.push(rightSquare);
+      triangles.push(leftTriangle);
+      triangles.push(rightTriangle);
       squares.push(cylinderSquare);
     });
 
     this.positions = [];
     this.normals = [];
-    const triangles: Triangle[] = [];
     for (let square of squares) {
       const triA = new Triangle(square.a, square.b, square.d);
       const triB = new Triangle(square.b, square.c, square.d);

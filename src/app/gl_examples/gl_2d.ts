@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import * as glm from './gl-matrix.js'
+import * as glm from '../gl-matrix.js'
 
 interface AttribLocations {
   vertexPosition: number;

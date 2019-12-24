@@ -5,7 +5,7 @@ import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
 import { GlProgram } from 'src/app/gl_program';
-import { CAR_BODY } from 'src/app/renderables/car_body';
+import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
 
 export class Car {
