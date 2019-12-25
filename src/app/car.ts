@@ -34,39 +34,52 @@ export class Car {
 
   velocity: vec3 = makeVec(0,0,0);
   acceleration: vec3 = makeVec(0, 0, 0);
-  accelerationPerGas: number = -.002;
-  decelerationRate: number = .001;
+  accelerationPerGas: number = -.05;
+  restDecelerationRate: number = .01;
+  brakeDecelerationRate: number = 3.2;
   maxAccelerationMagnitude: number = 30;
   maxVelocityMagnitude: number = 1;
-  gas() {
 
+  EPSILON = .001;
+
+  // v = v0 + a*t
+  // DeltaX = ((v + v0) / 2) * t
+  // DeltaX = v0 * t + .5 * a * t^2
+  // v^2 = v0^2 + 2* a * DeltaX
+  update(elapsedMs: number) {
+    const elapsedSeconds = elapsedMs / 1000;
+    // First update position based on current velocity.
+    this.translation[2] += this.velocity[2] * elapsedSeconds;
+
+    // Then calculate new acceleration.
+    const velocityMag = vec3.length(this.velocity);
+    const isGasPedalDown = CONTROLS.isKeyDown(Key.W);
+    const isBrakePedalDown = CONTROLS.isKeyDown(Key.S);
+    const isCoasting = !isBrakePedalDown && !isGasPedalDown && velocityMag > 0;
+    if (isGasPedalDown && !isBrakePedalDown) {
+      this.acceleration[2] += this.accelerationPerGas;
+      console.log("accelerating");
+    } else if (isBrakePedalDown && !isGasPedalDown && velocityMag > 0) {
+      this.acceleration[2] = this.brakeDecelerationRate;
+      console.log("braking");
+    } else if (isCoasting) {
+      this.acceleration[2] = this.restDecelerationRate;
+      console.log("coasting");
+    }
+
+    // Update velocity based on acceleration:
+    const prevVelocity = this.velocity[2];
+    const newVelocity = this.velocity[2] + this.acceleration[2] * elapsedSeconds;
+    if ((isCoasting || isBrakePedalDown) && this.signChange(prevVelocity, newVelocity)) {
+      this.velocity[2] = 0;
+      this.acceleration[2] = 0;
+    } else {
+      this.velocity[2] = newVelocity;
+    }
   }
 
-  update(elapsedMs: number) {
-    const velocityMag = vec3.length(this.velocity);
-    if (CONTROLS.isKeyDown(Key.W)) {
-      this.acceleration[2] += this.accelerationPerGas;
-    } else if (velocityMag > 0) {
-      if (velocityMag < this.decelerationRate) {
-        this.velocity[2] = 0;
-        return;
-      }
-      const isPositive = this.velocity[2] > 0;
-      let accelerationUpdate = this.decelerationRate;
-      if (isPositive) {
-        accelerationUpdate *= -1.0;
-      }
-      this.acceleration[2] += accelerationUpdate;
-    }
-
-    if (vec3.length(this.acceleration) > 0) {
-      const newVelocity = makeVec(0, 0, this.velocity[2] + this.acceleration[2]);
-      if (vec3.length(newVelocity) < this.maxVelocityMagnitude) {
-        this.velocity = newVelocity;
-      }
-    }
-
-    this.translation[2] += this.velocity[2];
+  signChange(a: number, b: number) {
+    return a >= 0 && b < 0 || a < 0 && b >= 0;
   }
 
   render(gl: WebGLRenderingContext, program: GlProgram) {
