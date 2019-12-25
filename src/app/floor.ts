@@ -4,7 +4,7 @@ import { FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 
 
 export class Floor {
-    translation = [0, -6, 0];
+    translation = [0, 0, 0];
     rotationAngle = 0;
     rotationAxis = [1, 0, 0];
 

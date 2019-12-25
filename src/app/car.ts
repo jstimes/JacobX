@@ -12,7 +12,7 @@ export class Car {
   bodyColor = [1, 0, 0, 1];
   wheelColor = [.2, .2, .2, 1];
   rotationAngle: number = 0;
-  translation: number[] = [0, -6.0, -30];
+  translation: number[] = [0, 0.0, 0.0];
 
   frontLeftWheelPosition: vec3;
   backLeftWheelPosition: vec3;

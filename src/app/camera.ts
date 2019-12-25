@@ -8,8 +8,8 @@ export class Camera {
     up = makeVec(0, 1, 0);
 
     constructor() {
-        this.cameraPosition = makeVec(0, 0, 0);
-        this.target = makeVec(0, 0, -30);
+        this.cameraPosition = makeVec(0, 12, 30);
+        this.target = makeVec(0, 0, 0);
     }
 
     getViewMatrix(): mat4 {
