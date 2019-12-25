@@ -7,6 +7,8 @@ import {makeVec, addVec} from './math_utils';
 import { GlProgram } from 'src/app/gl_program';
 import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
+import { CONTROLS } from 'src/app/controls';
+import { Key } from 'src/app/controls';
 
 export class Car {
   bodyColor = [1, 0, 0, 1];
@@ -28,6 +30,43 @@ export class Car {
     this.backLeftWheelPosition = makeVec(-xOffset, groundOffset, wheelZOffset);
     this.backRightWheelPosition = makeVec(xOffset, groundOffset, wheelZOffset);
     this.frontRightWheelPosition = makeVec(xOffset, groundOffset, -wheelZOffset);
+  }
+
+  velocity: vec3 = makeVec(0,0,0);
+  acceleration: vec3 = makeVec(0, 0, 0);
+  accelerationPerGas: number = -.002;
+  decelerationRate: number = .001;
+  maxAccelerationMagnitude: number = 30;
+  maxVelocityMagnitude: number = 1;
+  gas() {
+
+  }
+
+  update(elapsedMs: number) {
+    const velocityMag = vec3.length(this.velocity);
+    if (CONTROLS.isKeyDown(Key.W)) {
+      this.acceleration[2] += this.accelerationPerGas;
+    } else if (velocityMag > 0) {
+      if (velocityMag < this.decelerationRate) {
+        this.velocity[2] = 0;
+        return;
+      }
+      const isPositive = this.velocity[2] > 0;
+      let accelerationUpdate = this.decelerationRate;
+      if (isPositive) {
+        accelerationUpdate *= -1.0;
+      }
+      this.acceleration[2] += accelerationUpdate;
+    }
+
+    if (vec3.length(this.acceleration) > 0) {
+      const newVelocity = makeVec(0, 0, this.velocity[2] + this.acceleration[2]);
+      if (vec3.length(newVelocity) < this.maxVelocityMagnitude) {
+        this.velocity = newVelocity;
+      }
+    }
+
+    this.translation[2] += this.velocity[2];
   }
 
   render(gl: WebGLRenderingContext, program: GlProgram) {

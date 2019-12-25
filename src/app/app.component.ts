@@ -80,44 +80,42 @@ export class AppComponent {
   floor: Floor;
   program: GlProgram;
 
-  shouldUpdate = false;
-
   ngOnInit() {
     this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
     this.canvas.setAttribute('width', `${WIDTH}`);
     this.canvas.setAttribute('height', `${HEIGHT}`);
 
-    document.onkeydown = (e: KeyboardEvent) => {
-      console.log(e.keyCode);
-      if (e.keyCode === 32) {
-        // Space
-        this.shouldUpdate = !this.shouldUpdate;
-      } else if (e.keyCode === 87) {
-        // 'W'
-        this.car.translation[2] -= 1;
-      } else if (e.keyCode === 83) {
-        // 'S'
-        this.car.translation[2] += 1;
-      } else if (e.keyCode === 73) {
-        // 'I'
-        this.camera.moveUp();
-      } else if (e.keyCode === 75) {
-        // 'K'
-        this.camera.moveDown();
-      } else if (e.keyCode === 79) {
-        // 'O'
-        this.camera.zoomIn();
-      } else if (e.keyCode === 80) {
-        // 'P'
-        this.camera.zoomOut();
-      } else if (e.keyCode === 74) {
-        // 'J'
-        this.camera.orbitLeft();
-      }else if (e.keyCode === 76) {
-        // 'K'
-        this.camera.orbitRight();
-      }
-    };
+    // document.onkeydown = (e: KeyboardEvent) => {
+    //   console.log(e.keyCode);
+    //   if (e.keyCode === 32) {
+    //     // Space
+        
+    //   } else if (e.keyCode === 87) {
+    //     // 'W'
+    //     this.car.translation[2] -= 1;
+    //   } else if (e.keyCode === 83) {
+    //     // 'S'
+    //     this.car.translation[2] += 1;
+    //   } else if (e.keyCode === 73) {
+    //     // 'I'
+    //     this.camera.moveUp();
+    //   } else if (e.keyCode === 75) {
+    //     // 'K'
+    //     this.camera.moveDown();
+    //   } else if (e.keyCode === 79) {
+    //     // 'O'
+    //     this.camera.zoomIn();
+    //   } else if (e.keyCode === 80) {
+    //     // 'P'
+    //     this.camera.zoomOut();
+    //   } else if (e.keyCode === 74) {
+    //     // 'J'
+    //     this.camera.orbitLeft();
+    //   }else if (e.keyCode === 76) {
+    //     // 'K'
+    //     this.camera.orbitRight();
+    //   }
+    // };
     
     this.gl = this.canvas.getContext('webgl');
   
@@ -164,10 +162,9 @@ export class AppComponent {
   }
   
   update(elapsedMs: number) {
-    if (this.shouldUpdate) {
-      this.car.rotationAngle += elapsedMs / 1000;
-      this.floor.update(elapsedMs);
-    }
+    this.car.update(elapsedMs);
+    this.floor.update(elapsedMs);
+    this.camera.update(elapsedMs);
   }
 
   private createProjectionMatrix(): mat4 {

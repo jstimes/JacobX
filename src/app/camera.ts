@@ -1,5 +1,6 @@
 import {vec3, mat4} from 'src/app/gl-matrix.js';
 import {makeVec} from 'src/app/math_utils';
+import { CONTROLS, Key } from 'src/app/controls';
 
 
 export class Camera {
@@ -18,7 +19,28 @@ export class Camera {
         return view;
     }
 
-    ORBIT_ANGLE = Math.PI / 12;
+    update(elapsedMs: number) {
+        if (CONTROLS.isKeyDown(Key.J)) {
+            this.orbitLeft();
+        }
+        if (CONTROLS.isKeyDown(Key.L)) {
+            this.orbitRight();
+        }
+        if (CONTROLS.isKeyDown(Key.I)) {
+            this.moveUp();
+        }
+        if (CONTROLS.isKeyDown(Key.K)) {
+            this.moveDown();
+        }
+        if (CONTROLS.isKeyDown(Key.O)) {
+            this.zoomIn();
+        }
+        if (CONTROLS.isKeyDown(Key.P)) {
+            this.zoomOut();
+        }
+    }
+
+    ORBIT_ANGLE = Math.PI / 24;
     orbitRight() {
        vec3.rotateY(
            this.cameraPosition, 
@@ -35,19 +57,20 @@ export class Camera {
             -this.ORBIT_ANGLE);
     }
 
+    MOVEMENT = 0.25;
     moveUp() {
-        this.cameraPosition[1] += 1;
+        this.cameraPosition[1] += this.MOVEMENT;
     }
 
     moveDown() {
-        this.cameraPosition[1] -= 1;
+        this.cameraPosition[1] -= this.MOVEMENT;
     }
 
     zoomIn() {
-        this.cameraPosition[2] -= 1;
+        this.cameraPosition[2] -= this.MOVEMENT;
     }
 
     zoomOut() {
-        this.cameraPosition[2] += 1;
+        this.cameraPosition[2] += this.MOVEMENT;
     }
 }
