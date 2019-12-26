@@ -32,33 +32,44 @@ const VERTEX_SHADER_SOURCE = `
   uniform mat4 uModelMatrix;
   uniform mat4 uViewMatrix;
   uniform mat4 uProjectionMatrix;
+  uniform vec3 uPointLightPosition;
 
   varying highp vec3 vNormal;
   varying highp vec3 vLighting;
   varying highp vec4 vColor;
+  varying highp vec3 vSurfaceToPointLight;
 
   void main() {
     gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aVertexPosition;
 
-    vLighting = vec3(1.0, 1.0, 1.0);
     vNormal = (uNormalMatrix * vec4(aVertexNormal, 1.0)).xyz;
     vColor = uColor;
+
+    highp vec3 worldCoords = (uModelMatrix * aVertexPosition).xyz;
+    vSurfaceToPointLight = uPointLightPosition - worldCoords;
   }
 `;
 
 const FRAGMENT_SHADER_SOURCE = `
   varying highp vec3 vNormal;
-  varying highp vec3 vLighting;
   varying highp vec4 vColor;
 
   uniform highp vec3 uReverseLightDirection;
+  varying highp vec3 vSurfaceToPointLight;
 
   void main() {
     highp float ambientLight = .2;
     highp vec3 normal = normalize(vNormal);
     highp float directionalLight = max(dot(normal, uReverseLightDirection), 0.0);
+    highp vec3 surfaceToPointLight = normalize(vSurfaceToPointLight);
+    highp float pointLight = max(dot(normal, surfaceToPointLight), 0.0);
 
-    highp float light = ambientLight + directionalLight;
+    highp float maxDirectional = 0.5;
+    highp float maxPoint = 0.5;
+    directionalLight = min(directionalLight, maxDirectional);
+    pointLight = min(pointLight, maxPoint);
+
+    highp float light = ambientLight + directionalLight + pointLight;
     gl_FragColor = vec4(vColor.rgb * light, vColor.a);
   }
 `;
@@ -74,51 +85,25 @@ const WIDTH = 400;
 export class AppComponent {
   title = 'JacobX';
   canvas: HTMLCanvasElement;
+
   gl: WebGLRenderingContext;
+  program: GlProgram;
+
   projectionMatrix: mat4;
   camera: Camera;
-  reverseLightDirection: vec3;
 
+  // Lighting
+  reverseLightDirection: vec3;
+  pointLightLocation: vec3 = makeVec(2, 6, 3);
+
+  // Models
   car: Car;
   floor: Floor;
-  program: GlProgram;
 
   ngOnInit() {
     this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
     this.canvas.setAttribute('width', `${WIDTH}`);
     this.canvas.setAttribute('height', `${HEIGHT}`);
-
-    // document.onkeydown = (e: KeyboardEvent) => {
-    //   console.log(e.keyCode);
-    //   if (e.keyCode === 32) {
-    //     // Space
-        
-    //   } else if (e.keyCode === 87) {
-    //     // 'W'
-    //     this.car.translation[2] -= 1;
-    //   } else if (e.keyCode === 83) {
-    //     // 'S'
-    //     this.car.translation[2] += 1;
-    //   } else if (e.keyCode === 73) {
-    //     // 'I'
-    //     this.camera.moveUp();
-    //   } else if (e.keyCode === 75) {
-    //     // 'K'
-    //     this.camera.moveDown();
-    //   } else if (e.keyCode === 79) {
-    //     // 'O'
-    //     this.camera.zoomIn();
-    //   } else if (e.keyCode === 80) {
-    //     // 'P'
-    //     this.camera.zoomOut();
-    //   } else if (e.keyCode === 74) {
-    //     // 'J'
-    //     this.camera.orbitLeft();
-    //   }else if (e.keyCode === 76) {
-    //     // 'K'
-    //     this.camera.orbitRight();
-    //   }
-    // };
     
     this.gl = this.canvas.getContext('webgl');
   
@@ -227,6 +212,10 @@ export class AppComponent {
     gl.uniform3fv(
       this.program.uniformLocations.reverseLightDirection,
       this.reverseLightDirection);
+
+    gl.uniform3fv(
+      this.program.uniformLocations.pointLightPosition,
+      this.pointLightLocation);
     
     this.car.render(this.gl, this.program);
     this.floor.render(this.gl, this.program);
