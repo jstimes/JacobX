@@ -40,6 +40,10 @@ export class Car {
   maxAccelerationMagnitude: number = 30;
   maxVelocityMagnitude: number = 1;
 
+  wheelTurnRate: number = Math.PI / 80;
+  maxWheelTurn: number = Math.PI / 4;
+  wheelTurn: number = 0;
+
   EPSILON = .001;
 
   // v = v0 + a*t
@@ -65,6 +69,15 @@ export class Car {
     } else if (isCoasting) {
       this.acceleration[2] = this.restDecelerationRate;
       console.log("coasting");
+    }
+
+    // Determine wheel orientation:
+    const isTurningLeft = CONTROLS.isKeyDown(Key.A);
+    const isTurningRight = CONTROLS.isKeyDown(Key.D);
+    if (isTurningRight && !isTurningLeft) {
+      this.wheelTurn = Math.max(-this.maxWheelTurn, this.wheelTurn - this.wheelTurnRate);
+    } else if (isTurningLeft && !isTurningRight) {
+      this.wheelTurn = Math.min(this.maxWheelTurn, this.wheelTurn + this.wheelTurnRate);
     }
 
     // Update velocity based on acceleration:
@@ -97,19 +110,24 @@ export class Car {
     CAR_BODY.render(gl, program, carBodyModelViewMatrix);
 
     gl.uniform4fv(program.uniformLocations.colorVec, this.wheelColor);
-    this.renderWheel(carBodyModelViewMatrix, this.frontLeftWheelPosition, gl, program);
-    this.renderWheel(carBodyModelViewMatrix, this.backLeftWheelPosition, gl, program);
-    this.renderWheel(carBodyModelViewMatrix, this.backRightWheelPosition, gl, program);
-    this.renderWheel(carBodyModelViewMatrix, this.frontRightWheelPosition, gl, program);
+    this.renderWheel(true, carBodyModelViewMatrix, this.frontLeftWheelPosition, gl, program);
+    this.renderWheel(false, carBodyModelViewMatrix, this.backLeftWheelPosition, gl, program);
+    this.renderWheel(false, carBodyModelViewMatrix, this.backRightWheelPosition, gl, program);
+    this.renderWheel(true, carBodyModelViewMatrix, this.frontRightWheelPosition, gl, program);
   }
 
-  renderWheel(carBodyModelViewMatrix: mat4, wheelPos: vec3, gl: WebGLRenderingContext, program: GlProgram) {
+  renderWheel(isFront: boolean, carBodyModelViewMatrix: mat4, wheelPos: vec3, gl: WebGLRenderingContext, program: GlProgram) {
     const wheelTransMat = mat4.create();
     mat4.translate(wheelTransMat,
       wheelTransMat,
       wheelPos);
     const wheelModelMatrix = mat4.create();
     mat4.multiply(wheelModelMatrix, carBodyModelViewMatrix, wheelTransMat);
+    if (isFront) {
+      const wheelRotMat = mat4.create();
+      mat4.rotate(wheelRotMat, wheelRotMat, this.wheelTurn, [0,1,0]);
+      mat4.multiply(wheelModelMatrix, wheelModelMatrix, wheelRotMat);
+    }
     WHEEL.render(gl, program, wheelModelMatrix);
   }
 }
