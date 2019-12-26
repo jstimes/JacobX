@@ -64,8 +64,8 @@ const FRAGMENT_SHADER_SOURCE = `
     highp vec3 surfaceToPointLight = normalize(vSurfaceToPointLight);
     highp float pointLight = max(dot(normal, surfaceToPointLight), 0.0);
 
-    highp float maxDirectional = 0.5;
-    highp float maxPoint = 0.5;
+    highp float maxDirectional = 0.4;
+    highp float maxPoint = 0.4;
     directionalLight = min(directionalLight, maxDirectional);
     pointLight = min(pointLight, maxPoint);
 
@@ -94,7 +94,7 @@ export class AppComponent {
 
   // Lighting
   reverseLightDirection: vec3;
-  pointLightLocation: vec3 = makeVec(2, 6, 3);
+  pointLightLocation: vec3 = makeVec(4, 8, 3);
 
   // Models
   car: Car;

@@ -9,8 +9,8 @@ export class Triangle {
   
     getNormal(): vec3 {
       const u = vec3.create();
-      vec3.sub(u, this.b, this.a);
       const v = vec3.create();
+      vec3.sub(u, this.b, this.a);
       vec3.sub(v, this.c, this.a);
       return makeVec(
         u[1] * v[2] - u[2] * v[1],

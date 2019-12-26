@@ -30,114 +30,61 @@ class CarBodyRenderable extends Renderable {
     const length = 20;
     const zOffset = length / 2;
 
-    const makeBody = true;
     const squares = [];
 
-    if (makeBody) {
+    // Front four car body vertices:
+    const tlf = makeVec(-xOffset, yMax, -zOffset);
+    const blf = makeVec(-xOffset, yMin, -zOffset);
+    const trf = makeVec(xOffset, yMax, -zOffset);
+    const brf = makeVec(xOffset, yMin, -zOffset);
 
-      // Front four car body vertices:
-      const tlf = makeVec(-xOffset, yMax, -zOffset);
-      const blf = makeVec(-xOffset, yMin, -zOffset);
-      const trf = makeVec(xOffset, yMax, -zOffset);
-      const brf = makeVec(xOffset, yMin, -zOffset);
-
-      // Back four vertices
-      const tlb = makeVec(-xOffset, yMax, zOffset);
-      const blb = makeVec(-xOffset, yMin, zOffset);
-      const trb = makeVec(xOffset, yMax, zOffset);
-      const brb = makeVec(xOffset, yMin, zOffset);
-
-      const frontFace: Square = new Square({
-        a: trf, b: brf, c: blf, d: tlf,
-      });
-      squares.push(frontFace);
-
-      const backFace: Square = new Square({
-        a: tlb, b: blb, c: brb, d: trb,
-      });
-      squares.push(backFace);
-      
-      const topFace: Square = new Square({
-        a: tlf, b: tlb, c: trb, d: trf,
-      });
-      squares.push(topFace);
-
-      const bottomFace: Square =  new Square({
-        a: brf, b: brb, c: blb, d: blf,
-      });
-      squares.push(bottomFace);
-      
-      const leftFace: Square =  new Square({
-        a: tlf, b: blf, c: blb, d: tlb,
-      });
-      squares.push(leftFace);
-
-      const rightFace: Square = new Square({
-        a: trb, b: brb, c: brf, d: trf,
-      });
-      squares.push(rightFace);
+    const indent = true;
+    if (indent) {
+      const xIndent = .5;
+      tlf[0] += xIndent;
+      trf[0] -= xIndent;
+      blf[0] += xIndent;
+      brf[0] -= xIndent;
+      const yIndent = 1.5;
+      tlf[1] -= yIndent;
+      trf[1] -= yIndent;
     }
 
-    // WHEELS:
-    // Cylinder with circles on left,right
-    // const wheelWidth = 2;
-    // const wheelRadius = 2;
-    // const wheelXOffset = wheelWidth / 2;
+    // Back four vertices
+    const tlb = makeVec(-xOffset, yMax, zOffset);
+    const blb = makeVec(-xOffset, yMin, zOffset);
+    const trb = makeVec(xOffset, yMax, zOffset);
+    const brb = makeVec(xOffset, yMin, zOffset);
 
-    // const wheelSquares: Square[] = [];
-    // const circleSquares: Square[] = [];
-    // const deltaTheta = Math.PI / 8;
+    const frontFace: Square = new Square({
+      a: trf, b: brf, c: blf, d: tlf,
+    });
+    squares.push(frontFace);
 
-    // // First make a circle centered at 0,0,0, about the x-axis
-    // const circleCenter = makeVec(0, 0, 0);
-    // for(let theta = 0; theta < Math.PI * 2; theta += deltaTheta) {
-    //   // X is fixed, z = cos, y = sin
-    //   const cosA = Math.cos(theta);
-    //   const sinA = Math.sin(theta);
-    //   const ptA = makeVec(0, sinA * wheelRadius, cosA * wheelRadius);
-    //   const cosB = Math.cos(theta + deltaTheta);
-    //   const sinB = Math.sin(theta + deltaTheta);
-    //   const ptB = makeVec(0, sinB * wheelRadius, cosB * wheelRadius);
-    //   circleSquares.push(new Square({
-    //       a: ptB, 
-    //       b: vec3.clone(circleCenter), 
-    //       c: vec3.clone(circleCenter), 
-    //       d: ptA,
-    //   }));
-    // }
+    const backFace: Square = new Square({
+      a: tlb, b: blb, c: brb, d: trb,
+    });
+    squares.push(backFace);
+    
+    const topFace: Square = new Square({
+      a: tlf, b: tlb, c: trb, d: trf,
+    });
+    squares.push(topFace);
 
-    // // Then copy and translate the circle to make left and right faces of wheel:
-    // circleSquares.forEach((sq: Square) => {
-    //   const leftSquare = sq.clone().translate(makeVec(-wheelXOffset, 0, 0));
-    //   const rightSquare = sq.clone().translate(makeVec(wheelXOffset, 0, 0));
-    //   const cylinderSquare = new Square({
-    //       a: vec3.clone(leftSquare.a),
-    //       b: vec3.clone(leftSquare.d),
-    //       c: vec3.clone(rightSquare.d),
-    //       d: vec3.clone(rightSquare.a),
-    //   });
-    //   wheelSquares.push(leftSquare);
-    //   wheelSquares.push(rightSquare);
-    //   wheelSquares.push(cylinderSquare);
-    // });
+    const bottomFace: Square =  new Square({
+      a: brf, b: brb, c: blb, d: blf,
+    });
+    squares.push(bottomFace);
+    
+    const leftFace: Square =  new Square({
+      a: tlf, b: blf, c: blb, d: tlb,
+    });
+    squares.push(leftFace);
 
-    // // THen copy all squares of a wheel and move them to each of the wheel positions.
-    // const wheelZOffset = 6;
-    // const frontLeftWheelPosition = makeVec(-xOffset, groundOffset, -wheelZOffset);
-    // const backLeftWheelPosition = makeVec(-xOffset, groundOffset, wheelZOffset);
-    // const backRightWheelPosition = makeVec(xOffset, groundOffset, wheelZOffset);
-    // const frontRightWheelPosition = makeVec(xOffset, groundOffset, -wheelZOffset);
-    // wheelSquares.forEach((sq: Square) => {
-    //   const frontLeftWheel = sq.clone().translate(frontLeftTrans);
-    //   const backLeftWheel = sq.clone().translate(backLeftTrans);
-    //   const backRightWheel = sq.clone().translate(backRightTrans);
-    //   const frontRightWheel = sq.clone().translate(frontRightTrans);
-
-    //   squares.push(frontLeftWheel);
-    //   squares.push(backLeftWheel);
-    //   squares.push(backRightWheel);
-    //   squares.push(frontRightWheel);
-    // });
+    const rightFace: Square = new Square({
+      a: trb, b: brb, c: brf, d: trf,
+    });
+    squares.push(rightFace);
 
     this.positions = [];
     this.normals = [];
@@ -150,6 +97,7 @@ class CarBodyRenderable extends Renderable {
     }
     for (let triangle of triangles) {
       const triNormal = triangle.getNormal();
+      vec3.normalize(triNormal, triNormal);
       vec3.normalize(triNormal, triNormal);
       addVec(this.positions, triangle.a);
       addVec(this.positions, triangle.b);
