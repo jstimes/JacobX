@@ -33,31 +33,33 @@ const VERTEX_SHADER_SOURCE = `
   uniform mat4 uViewMatrix;
   uniform mat4 uProjectionMatrix;
 
+  varying highp vec3 vNormal;
   varying highp vec3 vLighting;
   varying highp vec4 vColor;
 
   void main() {
     gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aVertexPosition;
 
-    // Apply lighting effect
-    highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
-    highp vec3 directionalLightColor = vec3(1, 1, 1);
-    highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
-
-    highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-
-    highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-    vLighting = ambientLight + (directionalLightColor * directional);
+    vLighting = vec3(1.0, 1.0, 1.0);
+    vNormal = (uNormalMatrix * vec4(aVertexNormal, 1.0)).xyz;
     vColor = uColor;
   }
 `;
 
 const FRAGMENT_SHADER_SOURCE = `
+  varying highp vec3 vNormal;
   varying highp vec3 vLighting;
   varying highp vec4 vColor;
 
+  uniform highp vec3 uReverseLightDirection;
+
   void main() {
-    gl_FragColor = vec4(vColor.rgb * vLighting, vColor.a);
+    highp float ambientLight = .2;
+    highp vec3 normal = normalize(vNormal);
+    highp float directionalLight = max(dot(normal, uReverseLightDirection), 0.0);
+
+    highp float light = ambientLight + directionalLight;
+    gl_FragColor = vec4(vColor.rgb * light, vColor.a);
   }
 `;
 
@@ -75,6 +77,7 @@ export class AppComponent {
   gl: WebGLRenderingContext;
   projectionMatrix: mat4;
   camera: Camera;
+  reverseLightDirection: vec3;
 
   car: Car;
   floor: Floor;
@@ -136,6 +139,8 @@ export class AppComponent {
     this.camera = new Camera();
 
     this.projectionMatrix = this.createProjectionMatrix();
+    this.reverseLightDirection = makeVec(2, 3, 1);
+    vec3.normalize(this.reverseLightDirection, this.reverseLightDirection);
 
     this.car = new Car();
     this.floor = new Floor();
@@ -218,6 +223,10 @@ export class AppComponent {
       this.program.uniformLocations.viewMatrix,
       false,
       this.camera.getViewMatrix());
+
+    gl.uniform3fv(
+      this.program.uniformLocations.reverseLightDirection,
+      this.reverseLightDirection);
     
     this.car.render(this.gl, this.program);
     this.floor.render(this.gl, this.program);
