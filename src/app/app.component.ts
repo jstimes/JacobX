@@ -33,11 +33,12 @@ const VERTEX_SHADER_SOURCE = `
   uniform mat4 uViewMatrix;
   uniform mat4 uProjectionMatrix;
   uniform vec3 uPointLightPosition;
+  uniform vec3 uCameraPosition;
 
   varying highp vec3 vNormal;
-  varying highp vec3 vLighting;
   varying highp vec4 vColor;
   varying highp vec3 vSurfaceToPointLight;
+  varying highp vec3 vSurfaceToCamera;
 
   void main() {
     gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aVertexPosition;
@@ -47,15 +48,18 @@ const VERTEX_SHADER_SOURCE = `
 
     highp vec3 worldCoords = (uModelMatrix * aVertexPosition).xyz;
     vSurfaceToPointLight = uPointLightPosition - worldCoords;
+    vSurfaceToCamera = uCameraPosition - worldCoords;
   }
 `;
 
 const FRAGMENT_SHADER_SOURCE = `
   varying highp vec3 vNormal;
   varying highp vec4 vColor;
+  varying highp vec3 vSurfaceToPointLight;
+  varying highp vec3 vSurfaceToCamera;
 
   uniform highp vec3 uReverseLightDirection;
-  varying highp vec3 vSurfaceToPointLight;
+  uniform highp float uSpecularShininess;
 
   void main() {
     highp float ambientLight = .2;
@@ -63,6 +67,12 @@ const FRAGMENT_SHADER_SOURCE = `
     highp float directionalLight = max(dot(normal, uReverseLightDirection), 0.0);
     highp vec3 surfaceToPointLight = normalize(vSurfaceToPointLight);
     highp float pointLight = max(dot(normal, surfaceToPointLight), 0.0);
+    highp vec3 surfaceToCamera = normalize(vSurfaceToCamera);
+    highp vec3 halfVector = normalize(surfaceToPointLight + surfaceToCamera);
+    highp float specularLight = 0.0;
+    if (pointLight > 0.0) {
+      specularLight = pow(dot(normal, surfaceToCamera), uSpecularShininess);
+    }
 
     highp float maxDirectional = 0.4;
     highp float maxPoint = 0.4;
@@ -71,6 +81,8 @@ const FRAGMENT_SHADER_SOURCE = `
 
     highp float light = ambientLight + directionalLight + pointLight;
     gl_FragColor = vec4(vColor.rgb * light, vColor.a);
+
+    gl_FragColor.rgb += specularLight;
   }
 `;
 
@@ -94,7 +106,9 @@ export class AppComponent {
 
   // Lighting
   reverseLightDirection: vec3;
-  pointLightLocation: vec3 = makeVec(4, 8, 3);
+  pointLightLocation: vec3 = makeVec(4, 8, 0);
+  // Smaller values = more spread out; high values = more focused highlight.
+  specularShininess = 69;
 
   // Models
   car: Car;
@@ -216,6 +230,12 @@ export class AppComponent {
     gl.uniform3fv(
       this.program.uniformLocations.pointLightPosition,
       this.pointLightLocation);
+
+    gl.uniform3fv(
+      this.program.uniformLocations.cameraPosition,
+      this.camera.cameraPosition);
+
+    gl.uniform1f(this.program.uniformLocations.specularShininess, this.specularShininess);
     
     this.car.render(this.gl, this.program);
     this.floor.render(this.gl, this.program);

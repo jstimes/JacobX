@@ -12,6 +12,8 @@ interface UniformLocations {
     normalMatrix: WebGLUniformLocation;
     reverseLightDirection: WebGLUniformLocation;
     pointLightPosition: WebGLUniformLocation;
+    cameraPosition: WebGLUniformLocation;
+    specularShininess: WebGLUniformLocation;
 }
 
 export class GlProgram {
@@ -34,6 +36,8 @@ export class GlProgram {
             normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
             reverseLightDirection: gl.getUniformLocation(shaderProgram, 'uReverseLightDirection'),
             pointLightPosition: gl.getUniformLocation(shaderProgram, 'uPointLightPosition'),
+            cameraPosition: gl.getUniformLocation(shaderProgram, 'uCameraPosition'),
+            specularShininess: gl.getUniformLocation(shaderProgram, 'uSpecularShininess'),
         };
     }
 }
