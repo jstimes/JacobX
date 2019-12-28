@@ -1,5 +1,5 @@
 import {mat4} from 'src/app/gl-matrix.js';
-import { GlProgram } from 'src/app/gl_program';
+import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 
 
@@ -12,7 +12,7 @@ export class Floor {
 
     update(elapsedMs: number) {}
 
-    render(gl: WebGLRenderingContext, program: GlProgram) {
+    render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
         const model = mat4.create();
         mat4.translate(model, model, this.translation);
 

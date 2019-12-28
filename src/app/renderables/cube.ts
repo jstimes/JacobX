@@ -1,11 +1,10 @@
 import {vec3, mat4} from '../gl-matrix.js';
-
 import {Renderable} from './renderable';
-import {Square} from '../square';
-import {Triangle} from '../triangle';
-import {makeVec, addVec} from '../math_utils';
+import {Square} from 'src/app/square';
+import {Triangle} from 'src/app/triangle';
+import {makeVec, addVec} from 'src/app/math_utils';
 
-class CarBodyRenderable extends Renderable {
+class Cube extends Renderable {
   positions: number[] = [];
   normals: number[] = [];
 
@@ -20,40 +19,19 @@ class CarBodyRenderable extends Renderable {
   constructor() {
     super();
 
-    const bodyWidth = 4;
-    const xOffset = bodyWidth / 2;
-    const groundOffset = 2;
-    const height = 4;
-    const yMin = groundOffset;
-    const yMax = groundOffset + height;
-    const length = 20;
-    const zOffset = length / 2;
-
     const squares = [];
 
-    // Front four car body vertices:
-    const tlf = makeVec(-xOffset, yMax, -zOffset);
-    const blf = makeVec(-xOffset, yMin, -zOffset);
-    const trf = makeVec(xOffset, yMax, -zOffset);
-    const brf = makeVec(xOffset, yMin, -zOffset);
-
-    const indent = true;
-    if (indent) {
-      const xIndent = .5;
-      tlf[0] += xIndent;
-      trf[0] -= xIndent;
-      blf[0] += xIndent;
-      brf[0] -= xIndent;
-      const yIndent = 1.5;
-      tlf[1] -= yIndent;
-      trf[1] -= yIndent;
-    }
+    // Front four vertices:
+    const tlf = makeVec(-1, 1, -1);
+    const blf = makeVec(-1, -1, -1);
+    const trf = makeVec(1, 1, -1);
+    const brf = makeVec(1, -1, -1);
 
     // Back four vertices
-    const tlb = makeVec(-xOffset, yMax, zOffset);
-    const blb = makeVec(-xOffset, yMin, zOffset);
-    const trb = makeVec(xOffset, yMax, zOffset);
-    const brb = makeVec(xOffset, yMin, zOffset);
+    const tlb = makeVec(-1, 1, 1);
+    const blb = makeVec(-1, -1, 1);
+    const trb = makeVec(1, 1, 1);
+    const brb = makeVec(1, -1, 1);
 
     const frontFace: Square = new Square({
       a: trf, b: brf, c: blf, d: tlf,
@@ -108,4 +86,4 @@ class CarBodyRenderable extends Renderable {
   }
 }
 
-export const CAR_BODY = new CarBodyRenderable();
+export const CUBE = new Cube();

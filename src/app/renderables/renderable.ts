@@ -1,6 +1,6 @@
 import {mat4} from '../gl-matrix.js';
 import {Buffers} from '../buffers';
-import {GlProgram} from '../gl_program';
+import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
 
 export abstract class Renderable {
 
@@ -27,7 +27,7 @@ export abstract class Renderable {
         };
     }
 
-    render(gl: WebGLRenderingContext, program: GlProgram, modelMatrix: mat4) {
+    render(gl: WebGLRenderingContext, program: BaseShaderProgram, modelMatrix: mat4) {
 
         // Projection & view matrices uniform is expected to be set already.
 

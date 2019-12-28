@@ -1,10 +1,7 @@
-import {vec3, mat4} from './gl-matrix.js';
+import {vec3, mat4} from 'src/app/gl-matrix.js';
 
-import {Renderable} from './renderables/renderable';
-import {Square} from './square';
-import {Triangle} from './triangle';
-import {makeVec, addVec} from './math_utils';
-import { GlProgram } from 'src/app/gl_program';
+import {makeVec, addVec} from 'src/app/math_utils';
+import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
 import { CONTROLS } from 'src/app/controls';
@@ -95,7 +92,7 @@ export class Car {
     return a >= 0 && b < 0 || a < 0 && b >= 0;
   }
 
-  render(gl: WebGLRenderingContext, program: GlProgram) {
+  render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
     const carBodyModelViewMatrix = mat4.create();
     mat4.translate(carBodyModelViewMatrix,
         carBodyModelViewMatrix,
@@ -116,7 +113,12 @@ export class Car {
     this.renderWheel(true, carBodyModelViewMatrix, this.frontRightWheelPosition, gl, program);
   }
 
-  renderWheel(isFront: boolean, carBodyModelViewMatrix: mat4, wheelPos: vec3, gl: WebGLRenderingContext, program: GlProgram) {
+  renderWheel(
+      isFront: boolean, 
+      carBodyModelViewMatrix: mat4, 
+      wheelPos: vec3, 
+      gl: WebGLRenderingContext, 
+      program: StandardShaderProgram) {
     const wheelTransMat = mat4.create();
     mat4.translate(wheelTransMat,
       wheelTransMat,

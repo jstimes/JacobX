@@ -3,7 +3,6 @@ import {Renderable} from './renderable';
 import {Square} from '../square';
 import {Triangle} from '../triangle';
 import {makeVec, addVec} from '../math_utils';
-import { GlProgram } from 'src/app/gl_program';
 
 class WheelRenderable extends Renderable {
   positions: number[] = [];

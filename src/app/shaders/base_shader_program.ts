@@ -1,25 +1,22 @@
-import {loadTexture, initShaderProgram, loadShader} from './gl_utils';
+import {loadTexture, initShaderProgram, loadShader} from 'src/app/gl_utils';
 
-interface AttribLocations {
+export interface BaseShaderAttribLocations {
     vertexPosition: number;
     vertexNormal: number;
 }
-interface UniformLocations {
+
+export interface BaseShaderUniformLocations {
     colorVec: WebGLUniformLocation;
     projectionMatrix: WebGLUniformLocation;
     viewMatrix: WebGLUniformLocation;
     modelMatrix: WebGLUniformLocation;
     normalMatrix: WebGLUniformLocation;
-    reverseLightDirection: WebGLUniformLocation;
-    pointLightPosition: WebGLUniformLocation;
-    cameraPosition: WebGLUniformLocation;
-    specularShininess: WebGLUniformLocation;
 }
 
-export class GlProgram {
+export class BaseShaderProgram {
     program: WebGLProgram;
-    attribLocations: AttribLocations;
-    uniformLocations: UniformLocations;
+    attribLocations: BaseShaderAttribLocations;
+    uniformLocations: BaseShaderUniformLocations;
 
     constructor(gl: WebGLRenderingContext, vsSource: string, fsSource: string) {
         const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
@@ -34,10 +31,6 @@ export class GlProgram {
             modelMatrix: gl.getUniformLocation(shaderProgram, 'uModelMatrix'),
             viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
             normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
-            reverseLightDirection: gl.getUniformLocation(shaderProgram, 'uReverseLightDirection'),
-            pointLightPosition: gl.getUniformLocation(shaderProgram, 'uPointLightPosition'),
-            cameraPosition: gl.getUniformLocation(shaderProgram, 'uCameraPosition'),
-            specularShininess: gl.getUniformLocation(shaderProgram, 'uSpecularShininess'),
         };
     }
 }
