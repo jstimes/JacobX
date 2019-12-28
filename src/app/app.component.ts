@@ -20,6 +20,7 @@ import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { CUBE } from 'src/app/renderables/cube';
 import { PointLight } from 'src/app/game_objects/point_light';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
+import { SHADERS } from 'src/app/shaders/shaders';
 
 
 const HEIGHT = 300;
@@ -35,8 +36,6 @@ export class AppComponent {
   canvas: HTMLCanvasElement;
 
   gl: WebGLRenderingContext;
-  standardProgram: StandardShaderProgram;
-  lightProgram: LightShaderProgram;
 
   projectionMatrix: mat4;
   camera: Camera;
@@ -69,8 +68,7 @@ export class AppComponent {
     // Clear the color buffer with specified clear color
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-    this.standardProgram = new StandardShaderProgram(this.gl);
-    this.lightProgram = new LightShaderProgram(this.gl);
+    SHADERS.init(this.gl);
     this.initRenderables();
 
     this.camera = new Camera();
@@ -82,7 +80,7 @@ export class AppComponent {
     this.car = new Car();
     this.floor = new Floor();
     this.pointLight = new PointLight();
-    this.pointLight.position = makeVec(4, 8, 0);
+    this.pointLight.position = makeVec(4, 10, 0);
 
     this.gameLoop(0);
   }
@@ -152,29 +150,29 @@ export class AppComponent {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
     // Tell WebGL to use our program when drawing
-    this.useProgram(this.standardProgram);
+    this.useProgram(SHADERS.standard);
 
     gl.uniform3fv(
-      this.standardProgram.standardShaderUniformLocations.reverseLightDirection,
+      SHADERS.standard.standardShaderUniformLocations.reverseLightDirection,
       this.reverseLightDirection);
 
     gl.uniform3fv(
-      this.standardProgram.standardShaderUniformLocations.pointLightPosition,
+      SHADERS.standard.standardShaderUniformLocations.pointLightPosition,
       this.pointLight.position);
 
     gl.uniform3fv(
-      this.standardProgram.standardShaderUniformLocations.cameraPosition,
+      SHADERS.standard.standardShaderUniformLocations.cameraPosition,
       this.camera.cameraPosition);
 
     gl.uniform1f(
-      this.standardProgram.standardShaderUniformLocations.specularShininess, 
+      SHADERS.standard.standardShaderUniformLocations.specularShininess, 
       this.specularShininess);
     
-    this.car.render(this.gl, this.standardProgram);
-    this.floor.render(this.gl, this.standardProgram);
+    this.car.render(this.gl, SHADERS.standard);
+    this.floor.render(this.gl, SHADERS.standard);
 
-    this.useProgram(this.lightProgram);
-    this.pointLight.render(this.gl, this.lightProgram);
+    this.useProgram(SHADERS.light);
+    this.pointLight.render(this.gl, SHADERS.light);
   }
 
   private useProgram(program: BaseShaderProgram) {

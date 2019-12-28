@@ -6,12 +6,11 @@ import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
 import { CONTROLS } from 'src/app/controls';
 import { Key } from 'src/app/controls';
+import {GameObject} from './game_object';
 
-export class Car {
+export class Car extends GameObject {
   bodyColor = [1, 0, 0, 1];
   wheelColor = [.2, .2, .2, 1];
-  rotationAngle: number = 0;
-  translation: number[] = [0, 0.0, 0.0];
 
   frontLeftWheelPosition: vec3;
   backLeftWheelPosition: vec3;
@@ -19,6 +18,7 @@ export class Car {
   frontRightWheelPosition: vec3;
   
   constructor() {
+    super();
     const bodyWidth = 4;
     const xOffset = bodyWidth / 2;
     const groundOffset = 2;
@@ -27,6 +27,11 @@ export class Car {
     this.backLeftWheelPosition = makeVec(-xOffset, groundOffset, wheelZOffset);
     this.backRightWheelPosition = makeVec(xOffset, groundOffset, wheelZOffset);
     this.frontRightWheelPosition = makeVec(xOffset, groundOffset, -wheelZOffset);
+
+    CONTROLS.addAssignedControl(Key.W, "gas");
+    CONTROLS.addAssignedControl(Key.S, "brake");
+    CONTROLS.addAssignedControl(Key.A, "turn left");
+    CONTROLS.addAssignedControl(Key.D, "turn right");
   }
 
   velocity: vec3 = makeVec(0,0,0);
@@ -47,10 +52,10 @@ export class Car {
   // DeltaX = ((v + v0) / 2) * t
   // DeltaX = v0 * t + .5 * a * t^2
   // v^2 = v0^2 + 2* a * DeltaX
-  update(elapsedMs: number) {
+  update(elapsedMs: number): void {
     const elapsedSeconds = elapsedMs / 1000;
     // First update position based on current velocity.
-    this.translation[2] += this.velocity[2] * elapsedSeconds;
+    this.position[2] += this.velocity[2] * elapsedSeconds;
 
     // Then calculate new acceleration.
     const velocityMag = vec3.length(this.velocity);
@@ -93,29 +98,29 @@ export class Car {
   }
 
   render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
-    const carBodyModelViewMatrix = mat4.create();
-    mat4.translate(carBodyModelViewMatrix,
-        carBodyModelViewMatrix,
-        this.translation);
+    const carBodyModelMatrix = mat4.create();
+    mat4.translate(carBodyModelMatrix,
+        carBodyModelMatrix,
+        this.position);
 
-    mat4.rotate(carBodyModelViewMatrix,  // destination matrix
-        carBodyModelViewMatrix,  // matrix to rotate
+    mat4.rotate(carBodyModelMatrix,  // destination matrix
+        carBodyModelMatrix,  // matrix to rotate
         this.rotationAngle,   // amount to rotate in radians
         [0, 1, 0]);       // axis to rotate around
 
     gl.uniform4fv(program.uniformLocations.colorVec, this.bodyColor);
-    CAR_BODY.render(gl, program, carBodyModelViewMatrix);
+    CAR_BODY.render(gl, program, carBodyModelMatrix);
 
     gl.uniform4fv(program.uniformLocations.colorVec, this.wheelColor);
-    this.renderWheel(true, carBodyModelViewMatrix, this.frontLeftWheelPosition, gl, program);
-    this.renderWheel(false, carBodyModelViewMatrix, this.backLeftWheelPosition, gl, program);
-    this.renderWheel(false, carBodyModelViewMatrix, this.backRightWheelPosition, gl, program);
-    this.renderWheel(true, carBodyModelViewMatrix, this.frontRightWheelPosition, gl, program);
+    this.renderWheel(true, carBodyModelMatrix, this.frontLeftWheelPosition, gl, program);
+    this.renderWheel(false, carBodyModelMatrix, this.backLeftWheelPosition, gl, program);
+    this.renderWheel(false, carBodyModelMatrix, this.backRightWheelPosition, gl, program);
+    this.renderWheel(true, carBodyModelMatrix, this.frontRightWheelPosition, gl, program);
   }
 
   renderWheel(
       isFront: boolean, 
-      carBodyModelViewMatrix: mat4, 
+      carBodyModelMatrix: mat4, 
       wheelPos: vec3, 
       gl: WebGLRenderingContext, 
       program: StandardShaderProgram) {
@@ -124,7 +129,7 @@ export class Car {
       wheelTransMat,
       wheelPos);
     const wheelModelMatrix = mat4.create();
-    mat4.multiply(wheelModelMatrix, carBodyModelViewMatrix, wheelTransMat);
+    mat4.multiply(wheelModelMatrix, carBodyModelMatrix, wheelTransMat);
     if (isFront) {
       const wheelRotMat = mat4.create();
       mat4.rotate(wheelRotMat, wheelRotMat, this.wheelTurn, [0,1,0]);

@@ -11,6 +11,13 @@ export class Camera {
     constructor() {
         this.cameraPosition = makeVec(0, 12, 30);
         this.target = makeVec(0, 0, 0);
+
+        CONTROLS.addAssignedControl(Key.J, "camera orbit left");
+        CONTROLS.addAssignedControl(Key.L, "camera orbit right");
+        CONTROLS.addAssignedControl(Key.I, "camera move up");
+        CONTROLS.addAssignedControl(Key.K, "camera move down");
+        CONTROLS.addAssignedControl(Key.O, "camera zoom in");
+        CONTROLS.addAssignedControl(Key.P, "camera zoom out");
     }
 
     getViewMatrix(): mat4 {
