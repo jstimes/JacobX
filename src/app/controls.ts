@@ -9,6 +9,7 @@ export enum Key {
 
     A = 65,
     B = 66,
+    C = 67,
 
     D = 68,
 
@@ -23,8 +24,14 @@ export enum Key {
     P = 80,
     
     S = 83,
+    T = 84,
+    U = 85,
+    V = 86,
 
     W = 87,
+    X = 88,
+
+    Z = 90,
 }
 
 class Controls {

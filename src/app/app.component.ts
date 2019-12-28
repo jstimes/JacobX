@@ -21,6 +21,7 @@ import { CUBE } from 'src/app/renderables/cube';
 import { PointLight } from 'src/app/game_objects/point_light';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
 import { SHADERS } from 'src/app/shaders/shaders';
+import { GameObject } from 'src/app/game_objects/game_object';
 
 
 const HEIGHT = 300;
@@ -46,6 +47,7 @@ export class AppComponent {
   specularShininess = 69;
 
   // GameObjects
+  gameObjects: GameObject[] = [];
   car: Car;
   floor: Floor;
   pointLight: PointLight;
@@ -81,6 +83,7 @@ export class AppComponent {
     this.floor = new Floor();
     this.pointLight = new PointLight();
     this.pointLight.position = makeVec(4, 10, 0);
+    this.gameObjects = [this.car, this.floor, this.pointLight];
 
     this.gameLoop(0);
   }
@@ -106,8 +109,9 @@ export class AppComponent {
   }
   
   update(elapsedMs: number) {
-    this.car.update(elapsedMs);
-    this.floor.update(elapsedMs);
+    this.gameObjects.forEach((gameObject: GameObject) => {
+      gameObject.update(elapsedMs);
+    });
     this.camera.update(elapsedMs);
   }
 
