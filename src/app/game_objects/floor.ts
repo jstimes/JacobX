@@ -8,17 +8,47 @@ export class Floor extends GameObject {
 
     floorColor = [.05, .2, .05, 1.0];
 
+    useGrid = true;
+    width = 1000;
+
     constructor() {
         super();
         this.rotationAxis = [1, 0, 0];
         this.rotationAngle = -Math.PI / 2.0;
-        const scaling = 500;
+        const scaling = this.width / 2;
         this.scale = [scaling, scaling, scaling];
     }
 
     update(elapsedMs: number): void {}
 
     render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
+        if (this.useGrid) {
+            const gridColors = [[1, 1, 1, 1], [0, 0, 0, 1]];
+
+            const squareSize = 50;
+            const scale = squareSize / 2;
+            const start = -(this.width / 2);
+            const squaresPerRow = this.width / squareSize;
+            const initialPosition = [start + scale, 0, start + scale];
+            for (let i=0; i<squaresPerRow; i++) {
+                for (let j=0; j<squaresPerRow; j++) {
+                    const position = [initialPosition[0] + squareSize * i, 0, initialPosition[2] + squareSize * j];
+                    const model = mat4.create();
+                    mat4.translate(model, model, position);
+                    mat4.rotate(model,  // destination matrix
+                        model,  // matrix to rotate
+                        this.rotationAngle,   // amount to rotate in radians
+                        this.rotationAxis);       // axis to rotate around
+                    mat4.scale(model, model, [scale, scale, scale]);
+                    const colorIndex = (i + j) % 2;
+                    gl.uniform4fv(program.uniformLocations.colorVec, gridColors[colorIndex]);
+                    SQUARE_RENDERABLE.render(gl, program, model);
+                }
+            }
+            // debugger;
+            return;
+        }
+
         const model = mat4.create();
         mat4.translate(model, model, this.position);
 
