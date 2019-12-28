@@ -17,3 +17,7 @@ export function addVec(arr: number[], vec: vec3) {
     arr.push(vec[1]);
     arr.push(vec[2]);
 }
+
+export function hasSignChange(a: number, b: number) {
+    return a >= 0 && b < 0 || a < 0 && b >= 0;
+}

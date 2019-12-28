@@ -1,6 +1,6 @@
 import {vec3, mat4} from 'src/app/gl-matrix.js';
 
-import {makeVec, addVec} from 'src/app/math_utils';
+import {makeVec, addVec, hasSignChange} from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
 import { WHEEL } from 'src/app/renderables/wheel_renderable';
@@ -85,16 +85,12 @@ export class Car extends GameObject {
     // Update velocity based on acceleration:
     const prevVelocity = this.velocity[2];
     const newVelocity = this.velocity[2] + this.acceleration[2] * elapsedSeconds;
-    if ((isCoasting || isBrakePedalDown) && this.signChange(prevVelocity, newVelocity)) {
+    if ((isCoasting || isBrakePedalDown) && hasSignChange(prevVelocity, newVelocity)) {
       this.velocity[2] = 0;
       this.acceleration[2] = 0;
     } else {
       this.velocity[2] = newVelocity;
     }
-  }
-
-  signChange(a: number, b: number) {
-    return a >= 0 && b < 0 || a < 0 && b >= 0;
   }
 
   render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
