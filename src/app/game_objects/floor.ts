@@ -4,11 +4,18 @@ import { FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 import {GameObject} from './game_object';
 import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
 
+interface Tile {
+    model: mat4;
+    color: number[];
+}
+
 export class Floor extends GameObject {
 
     floorColor = [.05, .2, .05, 1.0];
 
     useGrid = true;
+    gridTiles = [];
+
     width = 1000;
 
     constructor() {
@@ -17,11 +24,7 @@ export class Floor extends GameObject {
         this.rotationAngle = -Math.PI / 2.0;
         const scaling = this.width / 2;
         this.scale = [scaling, scaling, scaling];
-    }
 
-    update(elapsedMs: number): void {}
-
-    render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
         if (this.useGrid) {
             const gridColors = [[1, 1, 1, 1], [0, 0, 0, 1]];
 
@@ -41,11 +44,24 @@ export class Floor extends GameObject {
                         this.rotationAxis);       // axis to rotate around
                     mat4.scale(model, model, [scale, scale, scale]);
                     const colorIndex = (i + j) % 2;
-                    gl.uniform4fv(program.uniformLocations.colorVec, gridColors[colorIndex]);
-                    SQUARE_RENDERABLE.render(gl, program, model);
+                    const tile = {
+                        model,
+                        color: gridColors[colorIndex],
+                    };
+                    this.gridTiles.push(tile);
                 }
             }
-            // debugger;
+        }
+    }
+
+    update(elapsedMs: number): void {}
+
+    render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
+        if (this.useGrid) {
+            this.gridTiles.forEach((tile: Tile) => {
+                gl.uniform4fv(program.uniformLocations.colorVec, tile.color);
+                SQUARE_RENDERABLE.render(gl, program, tile.model);
+            })
             return;
         }
 
