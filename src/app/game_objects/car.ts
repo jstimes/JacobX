@@ -2,8 +2,8 @@ import {vec3, mat4} from 'src/app/gl-matrix.js';
 
 import {makeVec, addVec, hasSignChange} from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
-import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
-import { WHEEL } from 'src/app/renderables/wheel_renderable';
+import { CAR_BODY_RENDERABLE } from 'src/app/renderables/car_body_renderable';
+import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
 import { CONTROLS } from 'src/app/controls';
 import { Key } from 'src/app/controls';
 import {GameObject} from './game_object';
@@ -105,7 +105,7 @@ export class Car extends GameObject {
         [0, 1, 0]);       // axis to rotate around
 
     gl.uniform4fv(program.uniformLocations.colorVec, this.bodyColor);
-    CAR_BODY.render(gl, program, carBodyModelMatrix);
+    CAR_BODY_RENDERABLE.render(gl, program, carBodyModelMatrix);
 
     gl.uniform4fv(program.uniformLocations.colorVec, this.wheelColor);
     this.renderWheel(true, carBodyModelMatrix, this.frontLeftWheelPosition, gl, program);
@@ -131,6 +131,6 @@ export class Car extends GameObject {
       mat4.rotate(wheelRotMat, wheelRotMat, this.wheelTurn, [0,1,0]);
       mat4.multiply(wheelModelMatrix, wheelModelMatrix, wheelRotMat);
     }
-    WHEEL.render(gl, program, wheelModelMatrix);
+    WHEEL_RENDERABLE.render(gl, program, wheelModelMatrix);
   }
 }

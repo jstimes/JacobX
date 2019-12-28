@@ -19,7 +19,7 @@ class FloorRenderable extends Renderable {
   constructor() {
     super();
 
-    const width = 100;
+    const width = 1000;
     const squareSize = 10;
     const start = -(width / 2);
     const squares: Square[] = [];

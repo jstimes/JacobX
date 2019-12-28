@@ -11,13 +11,13 @@ import {Square} from './square';
 import {Triangle} from './triangle';
 import {makeVec, addVec} from './math_utils';
 
-import { CAR_BODY } from 'src/app/renderables/car_body_renderable';
-import { WHEEL } from 'src/app/renderables/wheel_renderable';
+import { CAR_BODY_RENDERABLE } from 'src/app/renderables/car_body_renderable';
+import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
 import {FLOOR_RENDERABLE} from 'src/app/renderables/floor_renderable';
+import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
 
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
-import { CUBE } from 'src/app/renderables/cube';
 import { PointLight } from 'src/app/game_objects/point_light';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
 import { SHADERS } from 'src/app/shaders/shaders';
@@ -89,10 +89,10 @@ export class AppComponent {
   }
 
   initRenderables() {
-    CAR_BODY.initBuffers(this.gl);
-    WHEEL.initBuffers(this.gl);
+    CAR_BODY_RENDERABLE.initBuffers(this.gl);
+    WHEEL_RENDERABLE.initBuffers(this.gl);
     FLOOR_RENDERABLE.initBuffers(this.gl);
-    CUBE.initBuffers(this.gl);
+    CUBE_RENDERABLE.initBuffers(this.gl);
   }
 
   lastTime = 0;
@@ -128,7 +128,7 @@ export class AppComponent {
     const fieldOfView = 45 * Math.PI / 180;   // in radians
     const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
     const zNear = 0.1;
-    const zFar = 100.0;
+    const zFar = 1000.0;
   
     // note: glmatrix.js always has the first argument
     // as the destination to receive the result.

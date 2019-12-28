@@ -82,4 +82,4 @@ class WheelRenderable extends Renderable {
   }
 }
 
-export const WHEEL = new WheelRenderable();
+export const WHEEL_RENDERABLE = new WheelRenderable();

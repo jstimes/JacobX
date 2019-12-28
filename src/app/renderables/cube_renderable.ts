@@ -4,7 +4,7 @@ import {Square} from 'src/app/square';
 import {Triangle} from 'src/app/triangle';
 import {makeVec, addVec} from 'src/app/math_utils';
 
-class Cube extends Renderable {
+class CubeRenderable extends Renderable {
   positions: number[] = [];
   normals: number[] = [];
 
@@ -86,4 +86,4 @@ class Cube extends Renderable {
   }
 }
 
-export const CUBE = new Cube();
+export const CUBE_RENDERABLE = new CubeRenderable();

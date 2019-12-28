@@ -2,7 +2,7 @@ import {vec3, vec4, mat4} from 'src/app/gl-matrix.js';
 
 import {makeVec, makeVec4, addVec} from 'src/app/math_utils';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
-import {CUBE} from 'src/app/renderables/cube';
+import {CUBE_RENDERABLE} from 'src/app/renderables/cube_renderable';
 import { GameObject } from 'src/app/game_objects/game_object';
 import { CONTROLS, Key } from 'src/app/controls';
 
@@ -55,6 +55,6 @@ export class PointLight extends GameObject{
             [0, 1, 0]);       // axis to rotate around
 
         gl.uniform4fv(program.uniformLocations.colorVec, this.color);
-        CUBE.render(gl, program, carBodyModelViewMatrix);
+        CUBE_RENDERABLE.render(gl, program, carBodyModelViewMatrix);
     }
 }

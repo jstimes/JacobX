@@ -108,4 +108,4 @@ class CarBodyRenderable extends Renderable {
   }
 }
 
-export const CAR_BODY = new CarBodyRenderable();
+export const CAR_BODY_RENDERABLE = new CarBodyRenderable();
