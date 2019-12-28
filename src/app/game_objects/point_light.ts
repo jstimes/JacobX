@@ -1,5 +1,4 @@
 import {vec3, vec4, mat4} from 'src/app/gl-matrix.js';
-
 import {makeVec, makeVec4, addVec} from 'src/app/math_utils';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import {CUBE_RENDERABLE} from 'src/app/renderables/cube_renderable';

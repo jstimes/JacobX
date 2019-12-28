@@ -1,27 +1,26 @@
 import { Component } from '@angular/core';
-import {mat4, vec3, vec4} from './gl-matrix.js'
-import {loadTexture, initShaderProgram, loadShader} from './gl_utils';
+
+import { mat4, vec3, vec4 } from './gl-matrix.js'
 
 import {Camera} from './camera';
 
-import {Car} from 'src/app/game_objects/car';
-import {Floor} from 'src/app/game_objects/floor';
+import { GameObject } from 'src/app/game_objects/game_object';
+import { Car } from 'src/app/game_objects/car';
+import { Floor } from 'src/app/game_objects/floor';
+import { PointLight } from 'src/app/game_objects/point_light';
 
-import {Square} from './square';
-import {Triangle} from './triangle';
-import {makeVec, addVec} from './math_utils';
+import { makeVec, addVec } from './math_utils';
 
 import { CAR_BODY_RENDERABLE } from 'src/app/renderables/car_body_renderable';
 import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
-import {FLOOR_RENDERABLE} from 'src/app/renderables/floor_renderable';
+import  {FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
 
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
-import { PointLight } from 'src/app/game_objects/point_light';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
 import { SHADERS } from 'src/app/shaders/shaders';
-import { GameObject } from 'src/app/game_objects/game_object';
+import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
 
 
 const HEIGHT = 300;
@@ -93,6 +92,7 @@ export class AppComponent {
     WHEEL_RENDERABLE.initBuffers(this.gl);
     FLOOR_RENDERABLE.initBuffers(this.gl);
     CUBE_RENDERABLE.initBuffers(this.gl);
+    SQUARE_RENDERABLE.initBuffers(this.gl);
   }
 
   lastTime = 0;

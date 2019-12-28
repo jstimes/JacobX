@@ -1,8 +1,6 @@
 import {vec3, mat4} from '../gl-matrix.js';
 import {Renderable} from './renderable';
-import {Square} from '../square';
-import {Triangle} from '../triangle';
-import {makeVec, addVec} from '../math_utils';
+import {makeVec, addVec, Square, Triangle} from '../math_utils';
 
 class WheelRenderable extends Renderable {
   positions: number[] = [];

@@ -1,13 +1,35 @@
-import {mat4} from '../gl-matrix.js';
+import {vec3, mat4} from '../gl-matrix.js';
 import {Buffers} from '../buffers';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
+import {makeVec, addVec, Triangle} from 'src/app/math_utils';
 
 export abstract class Renderable {
 
     buffers: Buffers;
 
-    abstract getPositions(): number[];
-    abstract getNormals(): number[];
+    positions: number[] = [];
+    normals: number[] = [];
+
+    getPositions(): number[] {
+        return this.positions;
+    }
+
+    getNormals(): number[] {
+        return this.normals;
+    }
+
+    protected addTriangles(triangles: Triangle[]): void {
+        for (let triangle of triangles) {
+            const triNormal = triangle.getNormal();
+            vec3.normalize(triNormal, triNormal);
+            addVec(this.positions, triangle.a);
+            addVec(this.positions, triangle.b);
+            addVec(this.positions, triangle.c);
+            addVec(this.normals, triNormal);
+            addVec(this.normals, triNormal);
+            addVec(this.normals, triNormal);
+        }
+    }
 
     initBuffers(gl: WebGLRenderingContext) {    
         const positionBuffer = gl.createBuffer();

@@ -1,20 +1,8 @@
 import {vec3, mat4} from '../gl-matrix.js';
 import {Renderable} from './renderable';
-import {Square} from 'src/app/square';
-import {Triangle} from 'src/app/triangle';
-import {makeVec, addVec} from 'src/app/math_utils';
+import {makeVec, addVec, Square, Triangle} from 'src/app/math_utils';
 
 class CubeRenderable extends Renderable {
-  positions: number[] = [];
-  normals: number[] = [];
-
-  getPositions(): number[] {
-    return this.positions;
-  }
-
-  getNormals(): number[] {
-    return this.normals;
-  }
 
   constructor() {
     super();

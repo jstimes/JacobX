@@ -1,21 +1,9 @@
 import {vec3, mat4} from '../gl-matrix.js';
 
 import {Renderable} from './renderable';
-import {Square} from '../square';
-import {Triangle} from '../triangle';
-import {makeVec, addVec} from '../math_utils';
+import {makeVec, addVec, getTrianglesFromSquares, Square, Triangle} from '../math_utils';
 
 class CarBodyRenderable extends Renderable {
-  positions: number[] = [];
-  normals: number[] = [];
-
-  getPositions(): number[] {
-    return this.positions;
-  }
-
-  getNormals(): number[] {
-    return this.normals;
-  }
 
   constructor() {
     super();
@@ -87,24 +75,8 @@ class CarBodyRenderable extends Renderable {
 
     this.positions = [];
     this.normals = [];
-    const triangles: Triangle[] = [];
-    for (let square of squares) {
-      const triA = new Triangle(square.a, square.b, square.d);
-      const triB = new Triangle(square.b, square.c, square.d);
-      triangles.push(triA);
-      triangles.push(triB);
-    }
-    for (let triangle of triangles) {
-      const triNormal = triangle.getNormal();
-      vec3.normalize(triNormal, triNormal);
-      vec3.normalize(triNormal, triNormal);
-      addVec(this.positions, triangle.a);
-      addVec(this.positions, triangle.b);
-      addVec(this.positions, triangle.c);
-      addVec(this.normals, triNormal);
-      addVec(this.normals, triNormal);
-      addVec(this.normals, triNormal);
-    }
+    const triangles: Triangle[] = getTrianglesFromSquares(squares);
+    this.addTriangles(triangles);
   }
 }
 
