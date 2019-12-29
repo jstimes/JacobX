@@ -100,3 +100,7 @@ export class Square {
         return this;
     }
 }
+
+export function sign(num: number) {
+    return num > 0.0 ? 1.0 : -1.0;
+}

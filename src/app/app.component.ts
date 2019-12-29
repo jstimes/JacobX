@@ -39,6 +39,7 @@ export class AppComponent {
 
   projectionMatrix: mat4;
   camera: Camera;
+  isChaseCam: boolean = true;
 
   // Lighting
   reverseLightDirection: vec3;
@@ -64,9 +65,7 @@ export class AppComponent {
       return;
     }
   
-    // Set clear color to black, fully opaque
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    // Clear the color buffer with specified clear color
+    this.gl.clearColor(0.1, 0.8, 0.1, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
     SHADERS.init(this.gl);
@@ -112,6 +111,10 @@ export class AppComponent {
     this.gameObjects.forEach((gameObject: GameObject) => {
       gameObject.update(elapsedMs);
     });
+    if (this.isChaseCam) {
+      this.camera.target = vec3.clone(this.car.position);
+      this.camera.cameraPosition = vec3.add(vec3.create(), this.camera.target, makeVec(0, 15, 50));
+    }
     this.camera.update(elapsedMs);
   }
 
@@ -144,7 +147,7 @@ export class AppComponent {
     const gl = this.gl;
     this.resize();
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+    this.gl.clearColor(0.3, 0.4, 0.9, 1.0);
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
