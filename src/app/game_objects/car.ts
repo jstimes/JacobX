@@ -33,20 +33,18 @@ export class Car extends GameObject {
     CONTROLS.addAssignedControl(Key.S, "brake");
     CONTROLS.addAssignedControl(Key.A, "turn left");
     CONTROLS.addAssignedControl(Key.D, "turn right");
-
-    console.log('forward vec: ' + this.getForwardVector());
   }
 
   velocity: vec3 = makeVec(0,0,0);
   acceleration: vec3 = makeVec(0, 0, 0);
   accelerationPerGas: number = 1.1;
-  restDecelerationRate: number = 1 / 10;
-  brakeDecelerationRate: number = 10;
-  maxAccelerationMagnitude: number = 30;
-  maxVelocityMagnitude: number = 1;
+  restDecelerationRate: number = 10;
+  brakeDecelerationRate: number = 30;
+  maxAccelerationMagnitude: number = 20;
+  maxVelocityMagnitude: number = 100;
 
   wheelReturnToCenterRate: number = Math.PI / 80;
-  wheelTurnRate: number = Math.PI / 80;
+  wheelTurnRate: number = Math.PI / 180;
   maxWheelTurn: number = Math.PI / 6;
   wheelTurn: number = 0;
 
@@ -156,12 +154,18 @@ export class Car extends GameObject {
     const prevVelocity = vec3.clone(this.velocity);
     const newVelocity = vec3.add(vec3.create(), this.velocity, vec3.scale(vec3.create(), this.acceleration, elapsedSeconds));
     const prevNewDot = vec3.dot(prevVelocity, newVelocity);
-    if ((isCoasting || isBrakePedalDown) && prevNewDot < 0.0) {
+    if ((isCoasting || isBrakePedalDown) && prevNewDot <= 0.0) {
       console.log("stopping");
       this.velocity = makeVec(0.0, 0.0, 0.0);
       this.acceleration = makeVec(0.0, 0.0, 0.0);
     } else {
       this.velocity = newVelocity;
+      const newVelocityMagnitude = vec3.length(this.velocity);
+      if (newVelocityMagnitude > this.maxVelocityMagnitude) {
+        vec3.normalize(this.velocity, this.velocity);
+        vec3.scale(this.velocity, this.velocity, this.maxVelocityMagnitude);
+        console.log('reached max velocity');
+      }
     }
   }
 

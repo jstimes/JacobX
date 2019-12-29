@@ -21,6 +21,7 @@ import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
 import { SHADERS } from 'src/app/shaders/shaders';
 import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
+import { CONTROLS, Key } from 'src/app/controls';
 
 
 const HEIGHT = 300;
@@ -72,6 +73,7 @@ export class AppComponent {
     this.initRenderables();
 
     this.camera = new Camera();
+    CONTROLS.addAssignedControl(Key.M, 'Toggle chase cam');
 
     this.projectionMatrix = this.createProjectionMatrix();
     this.reverseLightDirection = makeVec(2, 3, 1);
@@ -116,6 +118,9 @@ export class AppComponent {
       this.camera.cameraPosition = vec3.add(vec3.create(), this.camera.target, makeVec(0, 15, 50));
     }
     this.camera.update(elapsedMs);
+    if (CONTROLS.isKeyDown(Key.M)) {
+      this.isChaseCam = !this.isChaseCam;
+    }
   }
 
   private createProjectionMatrix(): mat4 {

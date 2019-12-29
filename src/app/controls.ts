@@ -18,7 +18,7 @@ export enum Key {
     K = 75,
 
     L = 76,
-    
+    M = 77,
     N = 78,
     O = 79,
     P = 80,
