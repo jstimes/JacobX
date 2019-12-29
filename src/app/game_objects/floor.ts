@@ -21,7 +21,7 @@ export class Floor extends GameObject {
     constructor() {
         super();
         this.rotationAxis = [1, 0, 0];
-        this.rotationAngle = -Math.PI / 2.0;
+        this.rotationAngle = 0.0;
         const scaling = this.width / 2;
         this.scale = [scaling, scaling, scaling];
 

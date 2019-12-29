@@ -113,11 +113,18 @@ export class AppComponent {
     this.gameObjects.forEach((gameObject: GameObject) => {
       gameObject.update(elapsedMs);
     });
+    this.camera.update(elapsedMs);
+    this.updateChaseCam();
+  }
+
+  private updateChaseCam(): void {
     if (this.isChaseCam) {
       this.camera.target = vec3.clone(this.car.position);
-      this.camera.cameraPosition = vec3.add(vec3.create(), this.camera.target, makeVec(0, 15, 50));
+      const carOffsetBack = vec3.scale(vec3.create(), this.car.getBackwardVector(), 40);
+      const carOffsetUp = vec3.scale(vec3.create(), this.car.getUpVector(), 15);
+      const carOffset = vec3.add(vec3.create(), carOffsetBack, carOffsetUp);
+      this.camera.cameraPosition = vec3.add(vec3.create(), this.camera.target, carOffset);
     }
-    this.camera.update(elapsedMs);
     if (CONTROLS.isKeyDown(Key.M)) {
       this.isChaseCam = !this.isChaseCam;
     }

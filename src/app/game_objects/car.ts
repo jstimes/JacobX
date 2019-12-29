@@ -139,7 +139,6 @@ export class Car extends GameObject {
       if (vec3.length(newAcceleration) < this.maxAccelerationMagnitude) {
         this.acceleration = newAcceleration;
       }
-      // this.acceleration[2] += this.accelerationPerGas;
       console.log("accelerating");
     } else if (isBrakePedalDown && !isGasPedalDown && velocityMag > this.EPSILON) {
       vec3.scale(this.acceleration, this.getBackwardVector(), this.brakeDecelerationRate);

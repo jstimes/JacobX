@@ -1,0 +1,14 @@
+- [physics] non-flat terrain
+
+- [rendering] Light colors & game object materials
+- [rendering] texture for ground
+
+- [physics] rotate wheels
+
+- [Game] guns & powerups
+
+- [physics] rotate car from back instead of center while turning
+
+- [Rendering] Shadows
+- [rendering] N lights
+- [rendering] headlights
