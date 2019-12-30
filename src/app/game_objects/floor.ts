@@ -1,12 +1,14 @@
-import {mat4} from 'src/app/gl-matrix.js';
+import {vec3, mat4} from 'src/app/gl-matrix.js';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 import {GameObject} from './game_object';
 import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
+import { makeVec, Square } from 'src/app/math_utils';
 
 interface Tile {
     model: mat4;
     color: number[];
+    square: Square;
 }
 
 export class Floor extends GameObject {
@@ -14,7 +16,7 @@ export class Floor extends GameObject {
     floorColor = [.05, .2, .05, 1.0];
 
     useGrid = true;
-    gridTiles = [];
+    gridTiles: Tile[] = [];
 
     width = 1000;
 
@@ -32,21 +34,54 @@ export class Floor extends GameObject {
             const scale = squareSize / 2;
             const start = -(this.width / 2);
             const squaresPerRow = this.width / squareSize;
-            const initialPosition = [start + scale, 0, start + scale];
+            const initialPosition = [start, 0, start];
+            const elevationStartZ = squaresPerRow / 2 + 2;
+            const deltaY = 8;
+            const halfDeltaY = deltaY / 2;
             for (let i=0; i<squaresPerRow; i++) {
                 for (let j=0; j<squaresPerRow; j++) {
-                    const position = [initialPosition[0] + squareSize * i, 0, initialPosition[2] + squareSize * j];
+                    let yFront = 0;
+                    let yBack = 0;
+                    if (j < 4) {
+                        yFront = deltaY * (j);
+                        yBack = deltaY * (j + 1);
+                    } else  if (j === 4) {
+                        yFront = yBack = deltaY *4;
+                    } else if (j <= 8) {
+                        yFront = deltaY * (8-j+1)
+                        yBack = deltaY * (8-j);
+                    }
+                    // const position = [initialPosition[0] + squareSize * i, y, initialPosition[2] + squareSize * j];
+                    
+                    const leftX = initialPosition[0] + squareSize * i;
+                    const rightX = leftX + squareSize;
+                    const frontZ = initialPosition[2] + squareSize * j;
+                    const backZ = frontZ + squareSize;
+                    const square = new Square({
+                        a: makeVec(leftX, yFront, frontZ),
+                        b: makeVec(leftX, yBack, backZ), 
+                        c: makeVec(rightX, yBack, backZ),
+                        d: makeVec(rightX, yFront, frontZ),
+                    });
+                    const bToA = vec3.sub(vec3.create(), square.a, square.b);
+                    let rotAngleAboutXAxis = vec3.angle(bToA, makeVec(0, 0, -1.0));
+                    if (yFront < yBack) {
+                        rotAngleAboutXAxis *= -1.0;
+                    }
+                    const squareCenter = makeVec(leftX + scale, (yFront + yBack) / 2.0, frontZ + scale);
                     const model = mat4.create();
-                    mat4.translate(model, model, position);
-                    mat4.rotate(model,  // destination matrix
-                        model,  // matrix to rotate
-                        this.rotationAngle,   // amount to rotate in radians
-                        this.rotationAxis);       // axis to rotate around
-                    mat4.scale(model, model, [scale, scale, scale]);
+                    mat4.translate(model, model, squareCenter);
+                    mat4.rotate(model,  
+                        model,
+                        rotAngleAboutXAxis,
+                        makeVec(1, 0, 0));
+                    const zScale = vec3.length(bToA) / 2.0;
+                    mat4.scale(model, model, [scale, scale, zScale]);
                     const colorIndex = (i + j) % 2;
                     const tile = {
                         model,
                         color: gridColors[colorIndex],
+                        square,
                     };
                     this.gridTiles.push(tile);
                 }

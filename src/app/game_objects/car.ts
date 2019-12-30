@@ -7,6 +7,7 @@ import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
 import { CONTROLS } from 'src/app/controls';
 import { Key } from 'src/app/controls';
 import {GameObject} from './game_object';
+import { Floor } from 'src/app/game_objects/floor';
 
 export class Car extends GameObject {
   bodyColor = [1, 0, 0, 1];
@@ -17,7 +18,7 @@ export class Car extends GameObject {
   backRightWheelPosition: vec3;
   frontRightWheelPosition: vec3;
   
-  constructor() {
+  constructor(floor: Floor) {
     super();
     this.rotationAxis = [0, 1, 0];
     const bodyWidth = 4;

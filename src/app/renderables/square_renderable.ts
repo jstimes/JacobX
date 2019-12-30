@@ -15,7 +15,6 @@ class SquareRenderable extends Renderable {
         const topRight = makeVec(halfWidth, 0, -halfWidth);
         const squares = [new Square({a: topLeft, b: bottomLeft, c: bottomRight, d: topRight})];
         const triangles = getTrianglesFromSquares(squares);
-        console.log(triangles[0].getNormal());
         this.addTriangles(triangles);
     }
 }

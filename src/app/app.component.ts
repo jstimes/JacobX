@@ -40,7 +40,7 @@ export class AppComponent {
 
   projectionMatrix: mat4;
   camera: Camera;
-  isChaseCam: boolean = true;
+  isChaseCam: boolean = false;
 
   // Lighting
   reverseLightDirection: vec3;
@@ -74,13 +74,15 @@ export class AppComponent {
 
     this.camera = new Camera();
     CONTROLS.addAssignedControl(Key.M, 'Toggle chase cam');
+    this.camera.target = makeVec(0, 0, -250)
+    this.camera.cameraPosition = makeVec(550, 100, -250);
 
     this.projectionMatrix = this.createProjectionMatrix();
     this.reverseLightDirection = makeVec(2, 3, 1);
     vec3.normalize(this.reverseLightDirection, this.reverseLightDirection);
 
-    this.car = new Car();
     this.floor = new Floor();
+    this.car = new Car(this.floor);
     this.pointLight = new PointLight();
     this.pointLight.position = makeVec(4, 10, 0);
     this.gameObjects = [this.car, this.floor, this.pointLight];
