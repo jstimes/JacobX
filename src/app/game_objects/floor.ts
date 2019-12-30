@@ -89,6 +89,21 @@ export class Floor extends GameObject {
         }
     }
 
+    getYAtXZ(x: number, z: number): number {
+        for (let tile of this.gridTiles) {
+            if (x >= tile.square.a[0] && x <= tile.square.d[0] && z >= tile.square.a[2] && z <= tile.square.b[2]) {
+                const tileZLength = Math.abs(tile.square.a[2] - tile.square.b[2]);
+                const zRatio = (z - tile.square.a[2]) / tileZLength;
+
+                const aToB = vec3.sub(vec3.create(), tile.square.b, tile.square.a);
+                const interpolated = vec3.scale(vec3.create(), aToB, zRatio);
+                return interpolated[1] + tile.square.a[1];
+            }
+        }
+        console.log("XZ not found");
+        return -1;
+    }
+
     update(elapsedMs: number): void {}
 
     render(gl: WebGLRenderingContext, program: StandardShaderProgram) {

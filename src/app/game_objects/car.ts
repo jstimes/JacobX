@@ -1,6 +1,6 @@
 import {vec3, mat4} from 'src/app/gl-matrix.js';
 
-import {makeVec, addVec, hasSignChange, sign} from 'src/app/math_utils';
+import {makeVec, addVec, hasSignChange, sign, Square} from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { CAR_BODY_RENDERABLE } from 'src/app/renderables/car_body_renderable';
 import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
@@ -18,7 +18,7 @@ export class Car extends GameObject {
   backRightWheelPosition: vec3;
   frontRightWheelPosition: vec3;
   
-  constructor(floor: Floor) {
+  constructor(private readonly floor: Floor) {
     super();
     this.rotationAxis = [0, 1, 0];
     const bodyWidth = 4;
@@ -167,6 +167,20 @@ export class Car extends GameObject {
         console.log('reached max velocity');
       }
     }
+
+    // Update height:
+    // const frontLeftY = this.floor.getYAtXZ(this.frontLeftWheelPosition[0], this.frontLeftWheelPosition[2]);
+    // const backLeftY = this.floor.getYAtXZ(this.backLeftWheelPosition[0], this.backLeftWheelPosition[2]);
+    // const backRightY = this.floor.getYAtXZ(this.backRightWheelPosition[0], this.backRightWheelPosition[2]);
+    // const frontRightY = this.floor.getYAtXZ(this.frontRightWheelPosition[0], this.frontRightWheelPosition[2]);
+    // const wheelsRectangle = new Square({
+    //   a: makeVec(this.frontLeftWheelPosition[0], frontLeftY, this.frontLeftWheelPosition[2]),
+    //   b: makeVec(this.backLeftWheelPosition[0], backLeftY, this.backLeftWheelPosition[2]),
+    //   c: makeVec(this.backRightWheelPosition[0], backRightY, this.backRightWheelPosition[2]),
+    //   d: makeVec(this.frontRightWheelPosition[0], frontLeftY, this.frontRightWheelPosition[2]),
+    // });
+    // const center = wheelsRectangle.getCenter();
+    this.position[1] = this.floor.getYAtXZ(this.position[0], this.position[2]);
   }
 
   render(gl: WebGLRenderingContext, program: StandardShaderProgram) {

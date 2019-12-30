@@ -99,6 +99,14 @@ export class Square {
         vec3.add(this.d, this.d, vec);
         return this;
     }
+
+    getCenter(): vec3 {
+        const bToA = vec3.sub(vec3.create(), this.a, this.b);
+        const bToC = vec3.sub(vec3.create(), this.c, this.b);
+        vec3.scale(bToA, bToA, .5); vec3.scale(bToC, bToC, .5);
+        const center = vec3.add(vec3.create(), bToA, bToC);
+        return center;
+    }
 }
 
 export function sign(num: number) {
