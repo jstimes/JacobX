@@ -20,8 +20,6 @@ export class FlatFloor extends GameObject {
 
     constructor() {
         super();
-        this.rotationAxis = [1, 0, 0];
-        this.rotationAngle = 0.0;
         const scaling = this.width / 2;
         this.scale = [scaling, scaling, scaling];
 
@@ -38,10 +36,6 @@ export class FlatFloor extends GameObject {
                     const position = [initialPosition[0] + squareSize * i, 0, initialPosition[2] + squareSize * j];
                     const model = mat4.create();
                     mat4.translate(model, model, position);
-                    mat4.rotate(model,  // destination matrix
-                        model,  // matrix to rotate
-                        this.rotationAngle,   // amount to rotate in radians
-                        this.rotationAxis);       // axis to rotate around
                     mat4.scale(model, model, [scale, scale, scale]);
                     const colorIndex = (i + j) % 2;
                     const tile = {
@@ -67,11 +61,6 @@ export class FlatFloor extends GameObject {
 
         const model = mat4.create();
         mat4.translate(model, model, this.position);
-
-        mat4.rotate(model,  // destination matrix
-            model,  // matrix to rotate
-            this.rotationAngle,   // amount to rotate in radians
-            this.rotationAxis);       // axis to rotate around
         
         gl.uniform4fv(program.uniformLocations.colorVec, this.floorColor);
         // FLOOR_RENDERABLE.render(gl, program, model);

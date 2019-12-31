@@ -9,6 +9,10 @@ import { Key } from 'src/app/controls';
 import {GameObject} from './game_object';
 import { Floor } from 'src/app/game_objects/floor';
 
+const X_AXIS = makeVec(1, 0, 0);
+const Y_AXIS = makeVec(0, 1, 0);
+const Z_AXIS = makeVec(0, 0, -1);
+
 export class Car extends GameObject {
   bodyColor = [1, 0, 0, 1];
   wheelColor = [.2, .2, .2, 1];
@@ -17,10 +21,13 @@ export class Car extends GameObject {
   backLeftWheelPosition: vec3;
   backRightWheelPosition: vec3;
   frontRightWheelPosition: vec3;
+
+  xRotationAngle: number = 0;
+  yRotationAngle: number = 0;
+  zRotationAngle: number = 0;
   
   constructor(private readonly floor: Floor) {
     super();
-    this.rotationAxis = [0, 1, 0];
     const bodyWidth = 4;
     const xOffset = bodyWidth / 2;
     const groundOffset = 2;
@@ -62,14 +69,14 @@ export class Car extends GameObject {
   getForwardVector(): vec3 {
     const localForward = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), this.frontRightWheelPosition, this.backRightWheelPosition));
     // TODO should use up vector instead of Y axis
-    const worldForward = vec3.rotateY(vec3.create(), localForward, makeVec(0, 0, 0), this.rotationAngle);
+    const worldForward = vec3.rotateY(vec3.create(), localForward, makeVec(0, 0, 0), this.yRotationAngle);
     return vec3.normalize(worldForward, worldForward);
   }
 
   getBackwardVector(): vec3 {
     const localBackward = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), this.backRightWheelPosition, this.frontRightWheelPosition));
     // TODO should use up vector instead of Y axis
-    const worldBackward = vec3.rotateY(vec3.create(), localBackward, makeVec(0, 0, 0), this.rotationAngle);
+    const worldBackward = vec3.rotateY(vec3.create(), localBackward, makeVec(0, 0, 0), this.yRotationAngle);
     return vec3.normalize(worldBackward, worldBackward);
   }
 
@@ -127,7 +134,7 @@ export class Car extends GameObject {
         vec3.create(), accelerationNormalized, makeVec(0, 0, 0), rotationAngleUpdate);
       this.acceleration = vec3.scale(rotatedAcceleration, rotatedAcceleration, accelerationMag);
 
-      this.rotationAngle += rotationAngleUpdate;
+      this.yRotationAngle += rotationAngleUpdate;
     }
 
     const isGasPedalDown = CONTROLS.isKeyDown(Key.W);
@@ -167,23 +174,73 @@ export class Car extends GameObject {
         console.log('reached max velocity');
       }
     }
-
-    // Update height:
-    // const frontLeftY = this.floor.getYAtXZ(this.frontLeftWheelPosition[0], this.frontLeftWheelPosition[2]);
-    // const backLeftY = this.floor.getYAtXZ(this.backLeftWheelPosition[0], this.backLeftWheelPosition[2]);
-    // const backRightY = this.floor.getYAtXZ(this.backRightWheelPosition[0], this.backRightWheelPosition[2]);
-    // const frontRightY = this.floor.getYAtXZ(this.frontRightWheelPosition[0], this.frontRightWheelPosition[2]);
-    // const wheelsRectangle = new Square({
-    //   a: makeVec(this.frontLeftWheelPosition[0], frontLeftY, this.frontLeftWheelPosition[2]),
-    //   b: makeVec(this.backLeftWheelPosition[0], backLeftY, this.backLeftWheelPosition[2]),
-    //   c: makeVec(this.backRightWheelPosition[0], backRightY, this.backRightWheelPosition[2]),
-    //   d: makeVec(this.frontRightWheelPosition[0], frontLeftY, this.frontRightWheelPosition[2]),
-    // });
-    // const center = wheelsRectangle.getCenter();
+    
+    // Update car body's y position:
     this.position[1] = this.floor.getYAtXZ(this.position[0], this.position[2]);
+
+    // Now rotate so wheels are on ground:
+    // First, figure out the rotation about the car's x-axis
+    const model = this.getCarBodyModel2();
+    const frontLeftWheelPosWorld = vec3.create();
+    const backLeftWheelPosWorld = vec3.create();
+    vec3.transformMat4(frontLeftWheelPosWorld, this.frontLeftWheelPosition, model);
+    const frontLeftY = this.floor.getYAtXZ(frontLeftWheelPosWorld[0], frontLeftWheelPosWorld[2]);
+    vec3.transformMat4(backLeftWheelPosWorld, this.backLeftWheelPosition, model);
+    const backLeftY = this.floor.getYAtXZ(backLeftWheelPosWorld[0], backLeftWheelPosWorld[2]);
+    const frontLeftWheelWorldWithY = makeVec(frontLeftWheelPosWorld[0], frontLeftY, frontLeftWheelPosWorld[2]);
+    let backLeftWheelWorldWithY = makeVec(backLeftWheelPosWorld[0], backLeftY, backLeftWheelPosWorld[2]);
+
+    const backToFront = vec3.sub(vec3.create(), frontLeftWheelWorldWithY, backLeftWheelWorldWithY);
+    const backToFrontFlat = vec3.sub(vec3.create(), frontLeftWheelPosWorld, backLeftWheelPosWorld);
+
+    this.xRotationAngle = vec3.angle(backToFront, backToFrontFlat);
+    if (backToFrontFlat[1] > backToFront[1]) {
+      this.xRotationAngle *= -1.0;
+    }
+
+    // Then update model matrix and use to calc rotation about car's Z-axis.
+    const xRot = mat4.rotate(mat4.create(), mat4.create(), this.xRotationAngle, X_AXIS);
+    mat4.multiply(model, model, xRot);
+    vec3.transformMat4(backLeftWheelPosWorld, this.backLeftWheelPosition, model);
+    backLeftWheelWorldWithY = makeVec(backLeftWheelPosWorld[0], backLeftY, backLeftWheelPosWorld[2]);
+    const backRightWheelPosWorld = vec3.create();
+    vec3.transformMat4(backRightWheelPosWorld, this.backRightWheelPosition, model);
+    const backRightY = this.floor.getYAtXZ(backRightWheelPosWorld[0], backRightWheelPosWorld[2]);
+    const backRightWheelPosWorldWithY = makeVec(backRightWheelPosWorld[0], backRightY, backRightWheelPosWorld[2]);
+
+    const leftToRight = vec3.sub(vec3.create(), backRightWheelPosWorldWithY, backLeftWheelWorldWithY);
+    const leftToRightFlat = vec3.sub(vec3.create(), backRightWheelPosWorld, backLeftWheelPosWorld);
+
+    this.zRotationAngle = vec3.angle(leftToRight, leftToRightFlat);
+    if (leftToRightFlat[1] < leftToRight[1]) {
+      this.zRotationAngle *= -1.0;
+    }
   }
 
-  render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
+  getCarBodyModel(): mat4 {
+    const carBodyModelMatrix = mat4.create();
+    mat4.translate(carBodyModelMatrix,
+        carBodyModelMatrix,
+        this.position);
+    
+    mat4.rotate(carBodyModelMatrix,  // destination matrix
+        carBodyModelMatrix,  // matrix to rotate
+        this.yRotationAngle,   // amount to rotate in radians
+        Y_AXIS);       // axis to rotate around
+
+        mat4.rotate(carBodyModelMatrix,  // destination matrix
+          carBodyModelMatrix,  // matrix to rotate
+          this.xRotationAngle,   // amount to rotate in radians
+          X_AXIS);       // axis to rotate around
+
+          mat4.rotate(carBodyModelMatrix,  // destination matrix
+            carBodyModelMatrix,  // matrix to rotate
+            this.zRotationAngle,   // amount to rotate in radians
+            Z_AXIS);       // axis to rotate around
+    return carBodyModelMatrix;
+  }
+
+  getCarBodyModel2(): mat4 {
     const carBodyModelMatrix = mat4.create();
     mat4.translate(carBodyModelMatrix,
         carBodyModelMatrix,
@@ -191,9 +248,13 @@ export class Car extends GameObject {
 
     mat4.rotate(carBodyModelMatrix,  // destination matrix
         carBodyModelMatrix,  // matrix to rotate
-        this.rotationAngle,   // amount to rotate in radians
-        [0, 1, 0]);       // axis to rotate around
+        this.yRotationAngle,   // amount to rotate in radians
+        Y_AXIS);       // axis to rotate around
+    return carBodyModelMatrix;
+  }
 
+  render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
+    const carBodyModelMatrix = this.getCarBodyModel();
     gl.uniform4fv(program.uniformLocations.colorVec, this.bodyColor);
     CAR_BODY_RENDERABLE.render(gl, program, carBodyModelMatrix);
 

@@ -1,4 +1,4 @@
-import {vec3, vec4} from './gl-matrix.js';
+import {vec3, vec4, mat4} from './gl-matrix.js';
 
 export function makeVec(x: number, y: number, z: number): vec3 {
     const vector = vec3.create();

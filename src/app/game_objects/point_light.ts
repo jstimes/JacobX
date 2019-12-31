@@ -48,11 +48,6 @@ export class PointLight extends GameObject{
             carBodyModelViewMatrix,
             this.position);
 
-        mat4.rotate(carBodyModelViewMatrix,  // destination matrix
-            carBodyModelViewMatrix,  // matrix to rotate
-            this.rotationAngle,   // amount to rotate in radians
-            [0, 1, 0]);       // axis to rotate around
-
         gl.uniform4fv(program.uniformLocations.colorVec, this.color);
         CUBE_RENDERABLE.render(gl, program, carBodyModelViewMatrix);
     }

@@ -22,8 +22,6 @@ export class Floor extends GameObject {
 
     constructor() {
         super();
-        this.rotationAxis = [1, 0, 0];
-        this.rotationAngle = 0.0;
         const scaling = this.width / 2;
         this.scale = [scaling, scaling, scaling];
 
@@ -117,11 +115,6 @@ export class Floor extends GameObject {
 
         const model = mat4.create();
         mat4.translate(model, model, this.position);
-
-        mat4.rotate(model,  // destination matrix
-            model,  // matrix to rotate
-            this.rotationAngle,   // amount to rotate in radians
-            this.rotationAxis);       // axis to rotate around
         
         gl.uniform4fv(program.uniformLocations.colorVec, this.floorColor);
         // FLOOR_RENDERABLE.render(gl, program, model);
