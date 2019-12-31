@@ -42,6 +42,8 @@ export class AppComponent {
   camera: Camera;
   isChaseCam: boolean = false;
 
+  lastTime = 0;
+
   // Lighting
   reverseLightDirection: vec3;
   // Smaller values = more spread out; high values = more focused highlight.
@@ -84,10 +86,15 @@ export class AppComponent {
     this.floor = new Floor();
     this.car = new Car(this.floor);
     this.pointLight = new PointLight();
-    this.pointLight.position = makeVec(4, 10, 0);
+    this.pointLight.position = this.getHeadlightPosition();
     this.gameObjects = [this.car, this.floor, this.pointLight];
 
     this.gameLoop(0);
+  }
+
+  private getHeadlightPosition(): vec3 {
+    const localPosition = makeVec(0, CAR_BODY_RENDERABLE.groundOffset + CAR_BODY_RENDERABLE.height / 2.0, -CAR_BODY_RENDERABLE.zOffset - 1.0);
+    return vec3.transformMat4(vec3.create(), localPosition, this.car.getCarBodyModel());
   }
 
   initRenderables() {
@@ -97,8 +104,6 @@ export class AppComponent {
     CUBE_RENDERABLE.initBuffers(this.gl);
     SQUARE_RENDERABLE.initBuffers(this.gl);
   }
-
-  lastTime = 0;
 
   gameLoop(now: number) {
     const elapsedMs = now - this.lastTime;
@@ -115,6 +120,7 @@ export class AppComponent {
     this.gameObjects.forEach((gameObject: GameObject) => {
       gameObject.update(elapsedMs);
     });
+    this.pointLight.position = this.getHeadlightPosition();
     this.camera.update(elapsedMs);
     this.updateChaseCam();
   }

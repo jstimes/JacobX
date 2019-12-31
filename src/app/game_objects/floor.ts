@@ -26,7 +26,7 @@ export class Floor extends GameObject {
         this.scale = [scaling, scaling, scaling];
 
         if (this.useGrid) {
-            const gridColors = [[1, 1, 1, 1], [0, 0, 0, 1]];
+            const gridColors = [[1, 1, 1, 1], [0.2, 0.2, 0.2, 1]];
 
             const squareSize = 50;
             const scale = squareSize / 2;
