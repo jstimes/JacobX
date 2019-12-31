@@ -1,5 +1,7 @@
 import {vec3, vec4, mat4} from './gl-matrix.js';
 
+export const EPSILON: number = .001;
+
 export function makeVec(x: number, y: number, z: number): vec3 {
     const vector = vec3.create();
     vec3.set(vector, x, y, z);
@@ -31,6 +33,10 @@ export function getTrianglesFromSquares(squares: Square[]): Triangle[] {
         triangles.push(triB);
     }
     return triangles;
+}
+
+export function sign(num: number) {
+    return num > 0.0 ? 1.0 : -1.0;
 }
 
 export class Triangle {
@@ -107,8 +113,4 @@ export class Square {
         const center = vec3.add(vec3.create(), bToA, bToC);
         return center;
     }
-}
-
-export function sign(num: number) {
-    return num > 0.0 ? 1.0 : -1.0;
 }
