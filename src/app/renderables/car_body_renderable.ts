@@ -5,25 +5,26 @@ import {makeVec, addVec, getTrianglesFromSquares, Square, Triangle} from '../mat
 
 class CarBodyRenderable extends Renderable {
 
+  readonly LENGTH = 20;
+  readonly bodyWidth = 4;
+  readonly  xOffset = this.bodyWidth / 2;
+  readonly  groundOffset = 2;
+  readonly  height = 4;
+  readonly  yMin = this.groundOffset;
+  readonly  yMax = this.groundOffset + this.height;
+  readonly  length = 20;
+  readonly  zOffset = this.LENGTH / 2;
+
   constructor() {
     super();
-
-    const bodyWidth = 4;
-    const xOffset = bodyWidth / 2;
-    const groundOffset = 2;
-    const height = 4;
-    const yMin = groundOffset;
-    const yMax = groundOffset + height;
-    const length = 20;
-    const zOffset = length / 2;
 
     const squares = [];
 
     // Front four car body vertices:
-    const tlf = makeVec(-xOffset, yMax, -zOffset);
-    const blf = makeVec(-xOffset, yMin, -zOffset);
-    const trf = makeVec(xOffset, yMax, -zOffset);
-    const brf = makeVec(xOffset, yMin, -zOffset);
+    const tlf = makeVec(-this.xOffset, this.yMax, -this.zOffset);
+    const blf = makeVec(-this.xOffset, this.yMin, -this.zOffset);
+    const trf = makeVec(this.xOffset, this.yMax, -this.zOffset);
+    const brf = makeVec(this.xOffset, this.yMin, -this.zOffset);
 
     const indent = true;
     if (indent) {
@@ -38,10 +39,10 @@ class CarBodyRenderable extends Renderable {
     }
 
     // Back four vertices
-    const tlb = makeVec(-xOffset, yMax, zOffset);
-    const blb = makeVec(-xOffset, yMin, zOffset);
-    const trb = makeVec(xOffset, yMax, zOffset);
-    const brb = makeVec(xOffset, yMin, zOffset);
+    const tlb = makeVec(-this.xOffset, this.yMax, this.zOffset);
+    const blb = makeVec(-this.xOffset, this.yMin, this.zOffset);
+    const trb = makeVec(this.xOffset, this.yMax, this.zOffset);
+    const brb = makeVec(this.xOffset, this.yMin, this.zOffset);
 
     const frontFace: Square = new Square({
       a: trf, b: brf, c: blf, d: tlf,

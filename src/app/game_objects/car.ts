@@ -14,13 +14,9 @@ const Y_AXIS = makeVec(0, 1, 0);
 const Z_AXIS = makeVec(0, 0, -1);
 
 export class Car extends GameObject {
-  bodyColor = [1, 0, 0, 1];
-  wheelColor = [.2, .2, .2, 1];
-
-  frontLeftWheelPosition: vec3;
-  backLeftWheelPosition: vec3;
-  backRightWheelPosition: vec3;
-  frontRightWheelPosition: vec3;
+  // Colors/materials
+  readonly bodyColor = [1, 0, 0, 1];
+  readonly wheelColor = [.2, .2, .2, 1];
 
   xRotationAngle: number = 0;
   yRotationAngle: number = 0;
@@ -28,27 +24,35 @@ export class Car extends GameObject {
 
   velocity: vec3 = makeVec(0,0,0);
   acceleration: vec3 = makeVec(0, 0, 0);
-  accelerationPerGas: number = 1.1;
-  restDecelerationRate: number = 10;
-  brakeDecelerationRate: number = 30;
-  maxAccelerationMagnitude: number = 20;
-  maxVelocityMagnitude: number = 100;
+  readonly accelerationPerGas: number = 1.1;
+  readonly restDecelerationRate: number = 10;
+  readonly brakeDecelerationRate: number = 30;
+  readonly maxAccelerationMagnitude: number = 20;
+  readonly maxVelocityMagnitude: number = 100;
 
-  wheelReturnToCenterRate: number = Math.PI / 80;
-  wheelTurnRate: number = Math.PI / 180;
-  maxWheelTurn: number = Math.PI / 6;
   wheelTurn: number = 0;
+  readonly wheelReturnToCenterRate: number = Math.PI / 80;
+  readonly wheelTurnRate: number = Math.PI / 180;
+  readonly maxWheelTurn: number = Math.PI / 6;
+
+  // Car body params.
+  readonly bodyWidth: number = 4;
+  readonly xOffset: number = this.bodyWidth / 2;
+  readonly groundOffset: number = 2;
+  readonly wheelZOffset: number = 6;
+
+  // These are relative to local space.
+  frontLeftWheelPosition: vec3;
+  backLeftWheelPosition: vec3;
+  backRightWheelPosition: vec3;
+  frontRightWheelPosition: vec3;
   
   constructor(private readonly floor: Floor) {
     super();
-    const bodyWidth = 4;
-    const xOffset = bodyWidth / 2;
-    const groundOffset = 2;
-    const wheelZOffset = 6;
-    this.frontLeftWheelPosition = makeVec(-xOffset, groundOffset, -wheelZOffset);
-    this.backLeftWheelPosition = makeVec(-xOffset, groundOffset, wheelZOffset);
-    this.backRightWheelPosition = makeVec(xOffset, groundOffset, wheelZOffset);
-    this.frontRightWheelPosition = makeVec(xOffset, groundOffset, -wheelZOffset);
+    this.frontLeftWheelPosition = makeVec(-this.xOffset, this.groundOffset, -this.wheelZOffset);
+    this.backLeftWheelPosition = makeVec(-this.xOffset, this.groundOffset,this. wheelZOffset);
+    this.backRightWheelPosition = makeVec(this.xOffset, this.groundOffset, this.wheelZOffset);
+    this.frontRightWheelPosition = makeVec(this.xOffset, this.groundOffset, -this.wheelZOffset);
 
     CONTROLS.addAssignedControl(Key.W, "gas");
     CONTROLS.addAssignedControl(Key.S, "brake");
