@@ -42,10 +42,10 @@ export class Car extends GameObject {
   readonly wheelZOffset: number = 6;
 
   // These are relative to local space.
-  frontLeftWheelPosition: vec3;
-  backLeftWheelPosition: vec3;
-  backRightWheelPosition: vec3;
-  frontRightWheelPosition: vec3;
+  readonly frontLeftWheelPosition: vec3;
+  readonly backLeftWheelPosition: vec3;
+  readonly backRightWheelPosition: vec3;
+  readonly frontRightWheelPosition: vec3;
   
   constructor(private readonly floor: Floor) {
     super();
@@ -67,18 +67,17 @@ export class Car extends GameObject {
     return vec3.normalize(vec3.create(), up);
   }
 
-  // TODO NEED TO APPLY CURRENT ROTATION FIRST
   getForwardVector(): vec3 {
-    const localForward = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), this.frontRightWheelPosition, this.backRightWheelPosition));
-    // TODO should use up vector instead of Y axis
-    const worldForward = vec3.rotateY(vec3.create(), localForward, makeVec(0, 0, 0), this.yRotationAngle);
+    const backToFront = vec3.sub(vec3.create(), this.frontRightWheelPosition, this.backRightWheelPosition);
+    const localForward = vec3.normalize(vec3.create(), backToFront);
+    const worldForward = vec3.transformMat4(vec3.create(), localForward, this.getRotationMatrix());
     return vec3.normalize(worldForward, worldForward);
   }
 
   getBackwardVector(): vec3 {
-    const localBackward = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), this.backRightWheelPosition, this.frontRightWheelPosition));
-    // TODO should use up vector instead of Y axis
-    const worldBackward = vec3.rotateY(vec3.create(), localBackward, makeVec(0, 0, 0), this.yRotationAngle);
+    const frontToBack = vec3.sub(vec3.create(), this.backRightWheelPosition, this.frontRightWheelPosition)
+    const localBackward = vec3.normalize(vec3.create(), frontToBack);
+    const worldBackward = vec3.transformMat4(vec3.create(), localBackward, this.getRotationMatrix());
     return vec3.normalize(worldBackward, worldBackward);
   }
 
@@ -135,6 +134,7 @@ export class Car extends GameObject {
       this.yRotationAngle += rotationAngleUpdate;
     }
 
+    const oppositeVelocityNormalized = vec3.scale(vec3.create(), velocityNormalized, -1.0);
     const isGasPedalDown = CONTROLS.isKeyDown(Key.W);
     const isBrakePedalDown = CONTROLS.isKeyDown(Key.S);
     const isCoasting = !isBrakePedalDown && !isGasPedalDown && velocityMag > EPSILON;
@@ -147,11 +147,10 @@ export class Car extends GameObject {
       }
       console.log("accelerating");
     } else if (isBrakePedalDown && !isGasPedalDown && velocityMag > EPSILON) {
-      // TODO - should simply stop, not be the backward vector.
-      vec3.scale(this.acceleration, this.getBackwardVector(), this.brakeDecelerationRate);
+      vec3.scale(this.acceleration, oppositeVelocityNormalized, this.brakeDecelerationRate);
       console.log("braking");
     } else if (isCoasting) {
-      vec3.scale(this.acceleration, this.getBackwardVector(), this.restDecelerationRate);
+      vec3.scale(this.acceleration, oppositeVelocityNormalized, this.restDecelerationRate);
       console.log("coasting");
     }
 
