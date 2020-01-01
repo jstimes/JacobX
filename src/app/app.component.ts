@@ -7,7 +7,7 @@ import {Camera} from './camera';
 import { GameObject } from 'src/app/game_objects/game_object';
 import { Car } from 'src/app/game_objects/car';
 import { Floor } from 'src/app/game_objects/floor';
-import { PointLight } from 'src/app/game_objects/point_light';
+import { PointLight } from 'src/app/lights/point_light';
 
 import { makeVec, addVec } from './math_utils';
 
@@ -22,6 +22,7 @@ import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
 import { SHADERS } from 'src/app/shaders/shaders';
 import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
 import { CONTROLS, Key } from 'src/app/controls';
+import { StreetLight } from 'src/app/game_objects/street_light';
 
 
 const HEIGHT = 300;
@@ -53,7 +54,7 @@ export class AppComponent {
   gameObjects: GameObject[] = [];
   car: Car;
   floor: Floor;
-  pointLight: PointLight;
+  streetLight: StreetLight;
 
   ngOnInit() {
     this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -85,9 +86,9 @@ export class AppComponent {
 
     this.floor = new Floor();
     this.car = new Car(this.floor);
-    this.pointLight = new PointLight();
-    this.pointLight.position = this.getHeadlightPosition();
-    this.gameObjects = [this.car, this.floor, this.pointLight];
+    this.streetLight = new StreetLight();
+    this.streetLight.position = makeVec(25, 0, -25);
+    this.gameObjects = [this.car, this.floor, this.streetLight];
 
     this.gameLoop(0);
   }
@@ -120,7 +121,6 @@ export class AppComponent {
     this.gameObjects.forEach((gameObject: GameObject) => {
       gameObject.update(elapsedMs);
     });
-    this.pointLight.position = this.getHeadlightPosition();
     this.camera.update(elapsedMs);
     this.updateChaseCam();
   }
@@ -183,9 +183,12 @@ export class AppComponent {
       SHADERS.standard.standardShaderUniformLocations.reverseLightDirection,
       this.reverseLightDirection);
 
-    gl.uniform3fv(
-      SHADERS.standard.standardShaderUniformLocations.pointLightPosition,
-      this.pointLight.position);
+    // TODO - need array of light positions.
+    this.getAllLights().forEach(light => {
+      gl.uniform3fv(
+          SHADERS.standard.standardShaderUniformLocations.pointLightPosition,
+          light.position);
+    });
 
     gl.uniform3fv(
       SHADERS.standard.standardShaderUniformLocations.cameraPosition,
@@ -195,11 +198,25 @@ export class AppComponent {
       SHADERS.standard.standardShaderUniformLocations.specularShininess, 
       this.specularShininess);
     
-    this.car.render(this.gl, SHADERS.standard);
-    this.floor.render(this.gl, SHADERS.standard);
+    this.gameObjects.forEach((gameObject: GameObject) => {
+      gameObject.render(this.gl, SHADERS.standard);
+    });
 
     this.useProgram(SHADERS.light);
-    this.pointLight.render(this.gl, SHADERS.light);
+    this.gameObjects.forEach((gameObject: GameObject) => {
+      gameObject.renderLight(this.gl, SHADERS.light);
+    });
+    
+  }
+
+  private getAllLights(): PointLight[] {
+    const lights = [];
+    this.gameObjects.forEach((gameObject: GameObject) => {
+      gameObject.getLights().forEach((light: PointLight) => {
+        lights.push(light);
+      });
+    });
+    return lights;
   }
 
   private useProgram(program: BaseShaderProgram) {

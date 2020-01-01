@@ -102,9 +102,7 @@ export class Floor extends GameObject {
         return -1;
     }
 
-    update(elapsedMs: number): void {}
-
-    render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
+    render(gl: WebGLRenderingContext, program: StandardShaderProgram): void {
         if (this.useGrid) {
             this.gridTiles.forEach((tile: Tile) => {
                 gl.uniform4fv(program.uniformLocations.colorVec, tile.color);
