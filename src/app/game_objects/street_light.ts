@@ -4,7 +4,7 @@ import { makeVec, makeVec4 } from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
-import { PointLight } from 'src/app/lights/point_light';
+import { Light, PointLight, LightType } from 'src/app/lights/lights';
 
 export class StreetLight extends GameObject {
 
@@ -16,7 +16,11 @@ export class StreetLight extends GameObject {
     crossBarScale: vec3 = makeVec(4, 1, 1);
     crossBarPosition: vec3 = makeVec(0, 19, 0);
 
-    light: PointLight = new PointLight();
+    light: PointLight = {
+        lightType: LightType.POINT,
+        position: makeVec(-3, 17, 0),
+        color: makeVec4(0, 0, 0, 0),
+    };
 
     constructor() {
         super();
@@ -44,7 +48,7 @@ export class StreetLight extends GameObject {
         CUBE_RENDERABLE.render(gl, program, crossBarModel);
     }
 
-    getLights(): PointLight[] {
+    getLights(): Light[] {
         return [this.light];
     }
 

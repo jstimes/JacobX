@@ -7,7 +7,7 @@ import {Camera} from './camera';
 import { GameObject } from 'src/app/game_objects/game_object';
 import { Car } from 'src/app/game_objects/car';
 import { Floor } from 'src/app/game_objects/floor';
-import { PointLight } from 'src/app/lights/point_light';
+import { PointLight, LightType, Light } from 'src/app/lights/lights';
 
 import { makeVec, addVec } from './math_utils';
 
@@ -91,11 +91,6 @@ export class AppComponent {
     this.gameObjects = [this.car, this.floor, this.streetLight];
 
     this.gameLoop(0);
-  }
-
-  private getHeadlightPosition(): vec3 {
-    const localPosition = makeVec(0, CAR_BODY_RENDERABLE.groundOffset + CAR_BODY_RENDERABLE.height / 2.0, -CAR_BODY_RENDERABLE.zOffset - 1.0);
-    return vec3.transformMat4(vec3.create(), localPosition, this.car.getCarBodyModel());
   }
 
   initRenderables() {
@@ -185,9 +180,27 @@ export class AppComponent {
 
     // TODO - need array of light positions.
     this.getAllLights().forEach(light => {
-      gl.uniform3fv(
-          SHADERS.standard.standardShaderUniformLocations.pointLightPosition,
-          light.position);
+      switch(light.lightType) {
+        case LightType.POINT:
+          gl.uniform3fv(
+            SHADERS.standard.standardShaderUniformLocations.pointLightPosition,
+            light.position);
+          break;
+        case LightType.SPOT:
+          gl.uniform3fv(
+            SHADERS.standard.standardShaderUniformLocations.spotLightPosition,
+            light.position);
+          gl.uniform3fv(
+            SHADERS.standard.standardShaderUniformLocations.spotLightDirection,
+            light.direction);
+          gl.uniform1f(
+            SHADERS.standard.standardShaderUniformLocations.spotLightLowerLimit,
+            light.lowerLimit);
+          gl.uniform1f(
+            SHADERS.standard.standardShaderUniformLocations.spotLightUpperLimit,
+            light.upperLimit);
+          break;
+      }
     });
 
     gl.uniform3fv(
@@ -209,10 +222,10 @@ export class AppComponent {
     
   }
 
-  private getAllLights(): PointLight[] {
+  private getAllLights(): Light[] {
     const lights = [];
     this.gameObjects.forEach((gameObject: GameObject) => {
-      gameObject.getLights().forEach((light: PointLight) => {
+      gameObject.getLights().forEach((light: Light) => {
         lights.push(light);
       });
     });

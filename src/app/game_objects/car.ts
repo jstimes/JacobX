@@ -1,6 +1,6 @@
 import {vec3, mat4} from 'src/app/gl-matrix.js';
 
-import {makeVec, addVec, hasSignChange, sign, Square, EPSILON} from 'src/app/math_utils';
+import {makeVec, makeVec4, addVec, hasSignChange, sign, Square, EPSILON} from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { CAR_BODY_RENDERABLE } from 'src/app/renderables/car_body_renderable';
 import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
@@ -8,6 +8,7 @@ import { CONTROLS } from 'src/app/controls';
 import { Key } from 'src/app/controls';
 import {GameObject} from './game_object';
 import { Floor } from 'src/app/game_objects/floor';
+import { Light, SpotLight, LightType } from 'src/app/lights/lights';
 
 const X_AXIS = makeVec(1, 0, 0);
 const Y_AXIS = makeVec(0, 1, 0);
@@ -17,6 +18,17 @@ export class Car extends GameObject {
   // Colors/materials
   readonly bodyColor = [1, 0, 0, 1];
   readonly wheelColor = [.2, .2, .2, 1];
+
+  readonly headlightLocalPosition: vec3 = makeVec(0, CAR_BODY_RENDERABLE.groundOffset + CAR_BODY_RENDERABLE.height / 2.0, -CAR_BODY_RENDERABLE.zOffset - 1.0);
+  readonly headlightDownRotation: mat4 = mat4.rotateX(mat4.create(), mat4.create(), -Math.PI / 16.0);
+  readonly headlight: SpotLight = {
+    lightType: LightType.SPOT,
+    position: this.headlightLocalPosition,
+    color: makeVec4(0, 0, 0, 1),
+    direction: makeVec(0, 0, -1),
+    lowerLimit: Math.cos(Math.PI / 8),
+    upperLimit: Math.cos(Math.PI / 6),
+  };
 
   xRotationAngle: number = 0;
   yRotationAngle: number = 0;
@@ -212,6 +224,12 @@ export class Car extends GameObject {
     if (leftToRightFlat[1] < leftToRight[1]) {
       this.zRotationAngle *= -1.0;
     }
+
+    // Finally, update the headlights:
+    const finalModel = this.getCarBodyModel();
+    this.headlight.position = vec3.transformMat4(vec3.create(), this.headlightLocalPosition, finalModel);
+    // Tilt downwards slightly.
+    this.headlight.direction = vec3.transformMat4(vec3.create(), this.getForwardVector(), this.headlightDownRotation);
   }
 
   getCarBodyModel(): mat4 {
@@ -254,6 +272,10 @@ export class Car extends GameObject {
         this.yRotationAngle,
         Y_AXIS);
     return carBodyModelMatrix;
+  }
+
+  getLights(): Light[] {
+    return [this.headlight];
   }
 
   render(gl: WebGLRenderingContext, program: StandardShaderProgram): void {
