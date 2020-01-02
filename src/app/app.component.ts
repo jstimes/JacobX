@@ -9,7 +9,7 @@ import { Car } from 'src/app/game_objects/car';
 import { Floor } from 'src/app/game_objects/floor';
 import { PointLight, LightType, Light } from 'src/app/lights/lights';
 
-import { makeVec, addVec } from './math_utils';
+import { makeVec, makeVec4, addVec } from './math_utils';
 
 import { CAR_BODY_RENDERABLE } from 'src/app/renderables/car_body_renderable';
 import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
@@ -23,6 +23,7 @@ import { SHADERS } from 'src/app/shaders/shaders';
 import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
 import { CONTROLS, Key } from 'src/app/controls';
 import { StreetLight } from 'src/app/game_objects/street_light';
+import { Scene } from 'src/app/scene';
 
 
 const HEIGHT = 300;
@@ -41,12 +42,12 @@ export class AppComponent {
 
   projectionMatrix: mat4;
   camera: Camera;
-  isChaseCam: boolean = false;
+  isChaseCam: boolean = true;
 
   lastTime = 0;
 
   // Lighting
-  reverseLightDirection: vec3;
+  scene: Scene;
   // Smaller values = more spread out; high values = more focused highlight.
   specularShininess = 69;
 
@@ -68,21 +69,15 @@ export class AppComponent {
       alert("Unable to initialize WebGL. Your browser or machine may not support it.");
       return;
     }
-  
-    this.gl.clearColor(0.1, 0.8, 0.1, 1.0);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
     SHADERS.init(this.gl);
     this.initRenderables();
 
     this.camera = new Camera();
     CONTROLS.addAssignedControl(Key.M, 'Toggle chase cam');
-    this.camera.target = makeVec(0, 0, -250)
-    this.camera.cameraPosition = makeVec(550, 100, -250);
 
     this.projectionMatrix = this.createProjectionMatrix();
-    this.reverseLightDirection = makeVec(2, 3, 1);
-    vec3.normalize(this.reverseLightDirection, this.reverseLightDirection);
+    this.initScene();
 
     this.floor = new Floor();
     this.car = new Car(this.floor);
@@ -124,7 +119,7 @@ export class AppComponent {
     if (this.isChaseCam) {
       this.camera.target = vec3.clone(this.car.position);
       const carOffsetBack = vec3.scale(vec3.create(), this.car.getBackwardVector(), 40);
-      const carOffsetUp = vec3.scale(vec3.create(), this.car.getUpVector(), 15);
+      const carOffsetUp = vec3.scale(vec3.create(), this.car.getUpVector(), 13);
       const carOffset = vec3.add(vec3.create(), carOffsetBack, carOffsetUp);
       this.camera.cameraPosition = vec3.add(vec3.create(), this.camera.target, carOffset);
     }
@@ -162,7 +157,7 @@ export class AppComponent {
     const gl = this.gl;
     this.resize();
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    this.gl.clearColor(0.3, 0.4, 0.9, 1.0);
+    this.gl.clearColor(this.scene.clearColor[0], this.scene.clearColor[1], this.scene.clearColor[2], this.scene.clearColor[3]);
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -176,7 +171,7 @@ export class AppComponent {
 
     gl.uniform3fv(
       SHADERS.standard.standardShaderUniformLocations.reverseLightDirection,
-      this.reverseLightDirection);
+      vec3.scale(vec3.create(), this.scene.directionalLightDirection, -1.0));
 
     // TODO - need array of light positions.
     this.getAllLights().forEach(light => {
@@ -210,6 +205,10 @@ export class AppComponent {
     gl.uniform1f(
       SHADERS.standard.standardShaderUniformLocations.specularShininess, 
       this.specularShininess);
+
+    gl.uniform1f(SHADERS.standard.standardShaderUniformLocations.fogNear, this.scene.fog.fogNear);
+    gl.uniform1f(SHADERS.standard.standardShaderUniformLocations.fogFar, this.scene.fog.fogFar);
+    gl.uniform4fv(SHADERS.standard.standardShaderUniformLocations.fogColor, this.scene.fog.fogColor);
     
     this.gameObjects.forEach((gameObject: GameObject) => {
       gameObject.render(this.gl, SHADERS.standard);
@@ -230,6 +229,17 @@ export class AppComponent {
       });
     });
     return lights;
+  }
+
+  private initScene() {
+    this.scene = new Scene();
+    this.scene.directionalLightDirection = vec3.normalize(vec3.create(), makeVec(2, 3, 1));
+    this.scene.clearColor = makeVec4(0.3, 0.4, 0.9, 1.0);
+    this.scene.fog = {
+      fogColor: this.scene.clearColor,
+      fogNear: 25.0,
+      fogFar: 750.0,
+    }
   }
 
   private useProgram(program: BaseShaderProgram) {

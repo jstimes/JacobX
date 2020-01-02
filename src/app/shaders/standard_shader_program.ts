@@ -13,6 +13,7 @@ const VERTEX_SHADER_SOURCE = `
   uniform vec3 uSpotLightPosition;
   uniform vec3 uCameraPosition;
 
+  varying highp vec3 vPosition;
   varying highp vec3 vNormal;
   varying highp vec4 vColor;
   varying highp vec3 vSurfaceToPointLight;
@@ -26,6 +27,7 @@ const VERTEX_SHADER_SOURCE = `
     vColor = uColor;
 
     highp vec3 worldCoords = (uModelMatrix * aVertexPosition).xyz;
+    vPosition = worldCoords;
     vSurfaceToPointLight = uPointLightPosition - worldCoords;
     vSurfaceToSpotLight = uSpotLightPosition - worldCoords;
     vSurfaceToCamera = uCameraPosition - worldCoords;
@@ -33,6 +35,7 @@ const VERTEX_SHADER_SOURCE = `
 `;
 
 const FRAGMENT_SHADER_SOURCE = `
+  varying highp vec3 vPosition;
   varying highp vec3 vNormal;
   varying highp vec4 vColor;
   varying highp vec3 vSurfaceToPointLight;
@@ -44,6 +47,10 @@ const FRAGMENT_SHADER_SOURCE = `
   uniform highp vec3 uSpotLightDirection;
   uniform highp float uSpotLightLowerLimit;
   uniform highp float uSpotLightUpperLimit;
+  uniform highp vec3 uCameraPosition;
+  uniform highp float uFogNear;
+  uniform highp float uFogFar;
+  uniform highp vec4 uFogColor;
 
   void main() {
     highp float ambientLight = .1;
@@ -67,9 +74,15 @@ const FRAGMENT_SHADER_SOURCE = `
     pointLight = min(pointLight, maxPoint);
 
     highp float light = min(1.0, ambientLight + directionalLight + pointLight + spotLight);
-    gl_FragColor = vec4(vColor.rgb * light, vColor.a);
+    highp vec4 color = vec4(vColor.rgb * light, vColor.a);
 
-    gl_FragColor.rgb += specularLight;
+    color.rgb += specularLight;
+
+    // Fog
+    highp float distance = length(vPosition - uCameraPosition);
+    highp float fogAmount = smoothstep(uFogNear, uFogFar, distance);
+
+    gl_FragColor = mix(color, uFogColor, fogAmount);
   }
 `;
 
@@ -82,6 +95,9 @@ export interface StandardShaderUniformLocations {
   spotLightUpperLimit: WebGLUniformLocation;
   cameraPosition: WebGLUniformLocation;
   specularShininess: WebGLUniformLocation;
+  fogNear: WebGLUniformLocation;
+  fogFar: WebGLUniformLocation;
+  fogColor: WebGLUniformLocation;
 }
 
 export class StandardShaderProgram extends BaseShaderProgram {
@@ -99,6 +115,9 @@ export class StandardShaderProgram extends BaseShaderProgram {
         spotLightUpperLimit: gl.getUniformLocation(this.program, 'uSpotLightUpperLimit'),
         cameraPosition: gl.getUniformLocation(this.program, 'uCameraPosition'),
         specularShininess: gl.getUniformLocation(this.program, 'uSpecularShininess'),
+        fogNear: gl.getUniformLocation(this.program, 'uFogNear'),
+        fogFar: gl.getUniformLocation(this.program, 'uFogFar'),
+        fogColor: gl.getUniformLocation(this.program, 'uFogColor'),
     };
   }
 }
