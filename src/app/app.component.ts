@@ -170,7 +170,8 @@ export class AppComponent {
 
     gl.uniform3fv(
       SHADERS.standard.standardShaderUniformLocations.reverseLightDirection,
-      vec3.scale(vec3.create(), this.scene.directionalLightDirection, -1.0));
+      // vec3.scale(vec3.create(), this.scene.directionalLightDirection, -1.0));
+      this.scene.directionalLightReverseDirection);
 
     // TODO - need array of light positions.
     this.getAllLights().forEach(light => {
@@ -232,7 +233,7 @@ export class AppComponent {
 
   private initScene() {
     this.scene = new Scene();
-    this.scene.directionalLightDirection = vec3.normalize(vec3.create(), makeVec(2, 3, 1));
+    this.scene.directionalLightReverseDirection = vec3.normalize(vec3.create(), makeVec(2, 3, 1));
     this.scene.clearColor = makeVec4(0.3, 0.4, 0.9, 1.0);
     this.scene.fog = {
       fogColor: this.scene.clearColor,

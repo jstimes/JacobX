@@ -68,7 +68,7 @@ const FRAGMENT_SHADER_SOURCE = `
     highp float inSpotLight = smoothstep(uSpotLightUpperLimit, uSpotLightLowerLimit, dot(surfaceToSpotLight, normalize(-uSpotLightDirection)));
     spotLight = inSpotLight * dot(normal, surfaceToSpotLight);
 
-    highp float maxDirectional = 0.6;
+    highp float maxDirectional = 0.2;
     highp float maxPoint = 0.4;
     directionalLight = min(directionalLight, maxDirectional);
     pointLight = min(pointLight, maxPoint);

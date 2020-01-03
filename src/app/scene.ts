@@ -9,7 +9,7 @@ interface FogParams {
 export class Scene {
 
     clearColor: vec4;
-    directionalLightDirection: vec3;
+    directionalLightReverseDirection: vec3;
     fog: FogParams;
 
     constructor() {
