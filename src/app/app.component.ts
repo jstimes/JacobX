@@ -48,7 +48,6 @@ export class AppComponent {
 
   // Lighting
   scene: Scene;
-  // Smaller values = more spread out; high values = more focused highlight.
   specularShininess = 69;
 
   // GameObjects

@@ -9,6 +9,7 @@ import { Key } from 'src/app/controls';
 import {GameObject} from './game_object';
 import { Floor } from 'src/app/game_objects/floor';
 import { Light, SpotLight, LightType } from 'src/app/lights/lights';
+import {Material} from 'src/app/material';
 
 const X_AXIS = makeVec(1, 0, 0);
 const Y_AXIS = makeVec(0, 1, 0);
@@ -18,6 +19,13 @@ export class Car extends GameObject {
   // Colors/materials
   readonly bodyColor = [1, 0, 0, 1];
   readonly wheelColor = [.2, .2, .2, 1];
+
+  readonly bodyMaterial: Material = {
+    ambient: makeVec4(1, 0, 0, 1),
+    diffuse: makeVec4(1, 0, 0, 1),
+    specular: makeVec4(1, 1, 1, 1),
+    shininess: 69,
+  };
 
   readonly headlightLocalPosition: vec3 = makeVec(0, CAR_BODY_RENDERABLE.groundOffset + CAR_BODY_RENDERABLE.height / 2.0, -CAR_BODY_RENDERABLE.zOffset - 1.0);
   readonly headlightDownRotation: mat4 = mat4.rotateX(mat4.create(), mat4.create(), -Math.PI / 16.0);
@@ -281,6 +289,7 @@ export class Car extends GameObject {
   render(gl: WebGLRenderingContext, program: StandardShaderProgram): void {
     const carBodyModelMatrix = this.getCarBodyModel();
     gl.uniform4fv(program.uniformLocations.colorVec, this.bodyColor);
+    program.setMaterialUniform(gl, this.bodyMaterial);
     CAR_BODY_RENDERABLE.render(gl, program, carBodyModelMatrix);
 
     gl.uniform4fv(program.uniformLocations.colorVec, this.wheelColor);

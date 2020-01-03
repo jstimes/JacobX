@@ -1,4 +1,5 @@
 import {BaseShaderProgram, BaseShaderUniformLocations} from './base_shader_program';
+import { Material } from 'src/app/material';
 
 const VERTEX_SHADER_SOURCE = `
   precision mediump float;
@@ -39,6 +40,13 @@ const VERTEX_SHADER_SOURCE = `
 const FRAGMENT_SHADER_SOURCE = `
   precision mediump float;
 
+  struct Material {
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+    float shininess;
+  };
+
   varying vec3 vPosition;
   varying vec3 vNormal;
   varying vec4 vColor;
@@ -55,6 +63,7 @@ const FRAGMENT_SHADER_SOURCE = `
   uniform float uFogNear;
   uniform float uFogFar;
   uniform vec4 uFogColor;
+  uniform Material uMaterial;
 
   void main() {
     float ambientLight = .1;
@@ -91,14 +100,31 @@ const FRAGMENT_SHADER_SOURCE = `
 `;
 
 export interface StandardShaderUniformLocations {
+  // Directional light
   reverseLightDirection: WebGLUniformLocation;
+
+  // Point light
   pointLightPosition: WebGLUniformLocation;
+
+  // Spot light
   spotLightPosition: WebGLUniformLocation;
   spotLightDirection: WebGLUniformLocation;
   spotLightLowerLimit: WebGLUniformLocation;
   spotLightUpperLimit: WebGLUniformLocation;
+
+  // Camera
   cameraPosition: WebGLUniformLocation;
+
+  // Object material
+  materialAmbient: WebGLUniformLocation;
+  materialDiffuse: WebGLUniformLocation;
+  materialSpecular: WebGLUniformLocation;
+  materialShininess: WebGLUniformLocation;
+
+  // TODO - delete once material is implemented
   specularShininess: WebGLUniformLocation;
+
+  // Fog
   fogNear: WebGLUniformLocation;
   fogFar: WebGLUniformLocation;
   fogColor: WebGLUniformLocation;
@@ -112,16 +138,33 @@ export class StandardShaderProgram extends BaseShaderProgram {
 
     this.standardShaderUniformLocations = {
         reverseLightDirection: gl.getUniformLocation(this.program, 'uReverseLightDirection'),
+
         pointLightPosition: gl.getUniformLocation(this.program, 'uPointLightPosition'),
+
         spotLightPosition: gl.getUniformLocation(this.program, 'uSpotLightPosition'),
         spotLightDirection: gl.getUniformLocation(this.program, 'uSpotLightDirection'),
         spotLightLowerLimit: gl.getUniformLocation(this.program, 'uSpotLightLowerLimit'),
         spotLightUpperLimit: gl.getUniformLocation(this.program, 'uSpotLightUpperLimit'),
+
         cameraPosition: gl.getUniformLocation(this.program, 'uCameraPosition'),
+
+        materialAmbient: gl.getUniformLocation(this.program, 'uMaterial.ambient'),
+        materialDiffuse: gl.getUniformLocation(this.program, 'uMaterial.diffuse'),
+        materialSpecular: gl.getUniformLocation(this.program, 'uMaterial.specular'),
+        materialShininess: gl.getUniformLocation(this.program, 'uMaterial.shininess'),
+
         specularShininess: gl.getUniformLocation(this.program, 'uSpecularShininess'),
+
         fogNear: gl.getUniformLocation(this.program, 'uFogNear'),
         fogFar: gl.getUniformLocation(this.program, 'uFogFar'),
         fogColor: gl.getUniformLocation(this.program, 'uFogColor'),
     };
+  }
+
+  setMaterialUniform(gl: WebGLRenderingContext, material: Material) {
+    gl.uniform4fv(this.standardShaderUniformLocations.materialAmbient, material.ambient);
+    gl.uniform4fv(this.standardShaderUniformLocations.materialDiffuse, material.diffuse);
+    gl.uniform4fv(this.standardShaderUniformLocations.materialSpecular, material.specular);
+    gl.uniform1f(this.standardShaderUniformLocations.materialShininess, material.shininess);
   }
 }
