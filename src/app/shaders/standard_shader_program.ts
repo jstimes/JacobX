@@ -1,6 +1,8 @@
 import {BaseShaderProgram, BaseShaderUniformLocations} from './base_shader_program';
 
 const VERTEX_SHADER_SOURCE = `
+  precision mediump float;
+
   attribute vec4 aVertexPosition;
   attribute vec3 aVertexNormal;
 
@@ -13,12 +15,12 @@ const VERTEX_SHADER_SOURCE = `
   uniform vec3 uSpotLightPosition;
   uniform vec3 uCameraPosition;
 
-  varying highp vec3 vPosition;
-  varying highp vec3 vNormal;
-  varying highp vec4 vColor;
-  varying highp vec3 vSurfaceToPointLight;
-  varying highp vec3 vSurfaceToSpotLight;
-  varying highp vec3 vSurfaceToCamera;
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+  varying vec4 vColor;
+  varying vec3 vSurfaceToPointLight;
+  varying vec3 vSurfaceToSpotLight;
+  varying vec3 vSurfaceToCamera;
 
   void main() {
     gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aVertexPosition;
@@ -26,7 +28,7 @@ const VERTEX_SHADER_SOURCE = `
     vNormal = (uNormalMatrix * vec4(aVertexNormal, 1.0)).xyz;
     vColor = uColor;
 
-    highp vec3 worldCoords = (uModelMatrix * aVertexPosition).xyz;
+    vec3 worldCoords = (uModelMatrix * aVertexPosition).xyz;
     vPosition = worldCoords;
     vSurfaceToPointLight = uPointLightPosition - worldCoords;
     vSurfaceToSpotLight = uSpotLightPosition - worldCoords;
@@ -35,52 +37,54 @@ const VERTEX_SHADER_SOURCE = `
 `;
 
 const FRAGMENT_SHADER_SOURCE = `
-  varying highp vec3 vPosition;
-  varying highp vec3 vNormal;
-  varying highp vec4 vColor;
-  varying highp vec3 vSurfaceToPointLight;
-  varying highp vec3 vSurfaceToSpotLight;
-  varying highp vec3 vSurfaceToCamera;
+  precision mediump float;
 
-  uniform highp vec3 uReverseLightDirection;
-  uniform highp float uSpecularShininess;
-  uniform highp vec3 uSpotLightDirection;
-  uniform highp float uSpotLightLowerLimit;
-  uniform highp float uSpotLightUpperLimit;
-  uniform highp vec3 uCameraPosition;
-  uniform highp float uFogNear;
-  uniform highp float uFogFar;
-  uniform highp vec4 uFogColor;
+  varying vec3 vPosition;
+  varying vec3 vNormal;
+  varying vec4 vColor;
+  varying vec3 vSurfaceToPointLight;
+  varying vec3 vSurfaceToSpotLight;
+  varying vec3 vSurfaceToCamera;
+
+  uniform vec3 uReverseLightDirection;
+  uniform float uSpecularShininess;
+  uniform vec3 uSpotLightDirection;
+  uniform float uSpotLightLowerLimit;
+  uniform float uSpotLightUpperLimit;
+  uniform vec3 uCameraPosition;
+  uniform float uFogNear;
+  uniform float uFogFar;
+  uniform vec4 uFogColor;
 
   void main() {
-    highp float ambientLight = .1;
-    highp vec3 normal = normalize(vNormal);
-    highp float directionalLight = max(dot(normal, uReverseLightDirection), 0.0);
-    highp vec3 surfaceToPointLight = normalize(vSurfaceToPointLight);
-    highp float pointLight = max(dot(normal, surfaceToPointLight), 0.0);
-    highp vec3 surfaceToCamera = normalize(vSurfaceToCamera);
-    highp vec3 halfVector = normalize(surfaceToPointLight + surfaceToCamera);
-    highp float specularLight = 0.0;
+    float ambientLight = .1;
+    vec3 normal = normalize(vNormal);
+    float directionalLight = max(dot(normal, uReverseLightDirection), 0.0);
+    vec3 surfaceToPointLight = normalize(vSurfaceToPointLight);
+    float pointLight = max(dot(normal, surfaceToPointLight), 0.0);
+    vec3 surfaceToCamera = normalize(vSurfaceToCamera);
+    vec3 halfVector = normalize(surfaceToPointLight + surfaceToCamera);
+    float specularLight = 0.0;
     specularLight = pointLight * pow(dot(normal, surfaceToCamera), uSpecularShininess);
 
-    highp float spotLight = 0.0;
-    highp vec3 surfaceToSpotLight = normalize(vSurfaceToSpotLight);
-    highp float inSpotLight = smoothstep(uSpotLightUpperLimit, uSpotLightLowerLimit, dot(surfaceToSpotLight, normalize(-uSpotLightDirection)));
+    float spotLight = 0.0;
+    vec3 surfaceToSpotLight = normalize(vSurfaceToSpotLight);
+    float inSpotLight = smoothstep(uSpotLightUpperLimit, uSpotLightLowerLimit, dot(surfaceToSpotLight, normalize(-uSpotLightDirection)));
     spotLight = inSpotLight * dot(normal, surfaceToSpotLight);
 
-    highp float maxDirectional = 0.2;
-    highp float maxPoint = 0.4;
+    float maxDirectional = 0.2;
+    float maxPoint = 0.4;
     directionalLight = min(directionalLight, maxDirectional);
     pointLight = min(pointLight, maxPoint);
 
-    highp float light = min(1.0, ambientLight + directionalLight + pointLight + spotLight);
-    highp vec4 color = vec4(vColor.rgb * light, vColor.a);
+    float light = min(1.0, ambientLight + directionalLight + pointLight + spotLight);
+    vec4 color = vec4(vColor.rgb * light, vColor.a);
 
     color.rgb += specularLight;
 
     // Fog
-    highp float distance = length(vPosition - uCameraPosition);
-    highp float fogAmount = smoothstep(uFogNear, uFogFar, distance);
+    float distance = length(vPosition - uCameraPosition);
+    float fogAmount = smoothstep(uFogNear, uFogFar, distance);
 
     gl_FragColor = mix(color, uFogColor, fogAmount);
   }
