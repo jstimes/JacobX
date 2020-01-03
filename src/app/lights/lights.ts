@@ -26,3 +26,10 @@ export interface SpotLight {
 }
 
 export type Light = PointLight|SpotLight;
+
+// TODO - each light should have a LightColor
+export interface LightColor {
+    ambient: vec3;
+    diffuse: vec3;
+    specular: vec3;
+}

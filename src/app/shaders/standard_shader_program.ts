@@ -1,5 +1,6 @@
 import {BaseShaderProgram, BaseShaderUniformLocations} from './base_shader_program';
 import { Material } from 'src/app/material';
+import { LightColor } from 'src/app/lights/lights';
 
 const VERTEX_SHADER_SOURCE = `
   precision mediump float;
@@ -47,6 +48,12 @@ const FRAGMENT_SHADER_SOURCE = `
     float shininess;
   };
 
+  struct LightColor {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+  };
+
   varying vec3 vPosition;
   varying vec3 vNormal;
   varying vec4 vColor;
@@ -63,7 +70,9 @@ const FRAGMENT_SHADER_SOURCE = `
   uniform float uFogNear;
   uniform float uFogFar;
   uniform vec4 uFogColor;
+
   uniform Material uMaterial;
+  uniform LightColor uLightColor;
 
   void main() {
     float ambientLight = .1;
@@ -121,6 +130,12 @@ export interface StandardShaderUniformLocations {
   materialSpecular: WebGLUniformLocation;
   materialShininess: WebGLUniformLocation;
 
+  // TODO - use one for each light
+  // Light color
+  lightColorAmbient: WebGLUniformLocation;
+  lightColorDiffuse: WebGLUniformLocation;
+  lightColorSpecular: WebGLUniformLocation;
+
   // TODO - delete once material is implemented
   specularShininess: WebGLUniformLocation;
 
@@ -153,6 +168,10 @@ export class StandardShaderProgram extends BaseShaderProgram {
         materialSpecular: gl.getUniformLocation(this.program, 'uMaterial.specular'),
         materialShininess: gl.getUniformLocation(this.program, 'uMaterial.shininess'),
 
+        lightColorAmbient: gl.getUniformLocation(this.program, 'uLightColor.ambient'),
+        lightColorDiffuse: gl.getUniformLocation(this.program, 'uLightColor.diffuse'),
+        lightColorSpecular: gl.getUniformLocation(this.program, 'uLightColor.specular'),
+
         specularShininess: gl.getUniformLocation(this.program, 'uSpecularShininess'),
 
         fogNear: gl.getUniformLocation(this.program, 'uFogNear'),
@@ -166,5 +185,11 @@ export class StandardShaderProgram extends BaseShaderProgram {
     gl.uniform4fv(this.standardShaderUniformLocations.materialDiffuse, material.diffuse);
     gl.uniform4fv(this.standardShaderUniformLocations.materialSpecular, material.specular);
     gl.uniform1f(this.standardShaderUniformLocations.materialShininess, material.shininess);
+  }
+
+  setLightColorUniform(gl: WebGLRenderingContext, lightColor: LightColor) {
+    gl.uniform3fv(this.standardShaderUniformLocations.lightColorAmbient, lightColor.ambient);
+    gl.uniform3fv(this.standardShaderUniformLocations.lightColorDiffuse, lightColor.diffuse);
+    gl.uniform3fv(this.standardShaderUniformLocations.lightColorSpecular, lightColor.specular);
   }
 }

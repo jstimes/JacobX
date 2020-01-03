@@ -167,6 +167,8 @@ export class AppComponent {
   
     this.useProgram(SHADERS.standard);
 
+    SHADERS.standard.setLightColorUniform(this.gl, this.scene.lightColor);
+
     gl.uniform3fv(
       SHADERS.standard.standardShaderUniformLocations.reverseLightDirection,
       // vec3.scale(vec3.create(), this.scene.directionalLightDirection, -1.0));
@@ -238,6 +240,11 @@ export class AppComponent {
       fogColor: this.scene.clearColor,
       fogNear: 25.0,
       fogFar: 750.0,
+    }
+    this.scene.lightColor = {
+      ambient: makeVec(.1, .1, .1),
+      diffuse: makeVec(1.0, 1.0, 1.0),
+      specular: makeVec(1.0, 1.0, 1.0),
     }
   }
 
