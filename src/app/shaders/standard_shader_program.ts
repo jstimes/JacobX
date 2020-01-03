@@ -61,14 +61,14 @@ const FRAGMENT_SHADER_SOURCE = `
     highp vec3 surfaceToCamera = normalize(vSurfaceToCamera);
     highp vec3 halfVector = normalize(surfaceToPointLight + surfaceToCamera);
     highp float specularLight = 0.0;
-    specularLight = step(0.0, pointLight) * pow(dot(normal, surfaceToCamera), uSpecularShininess);
+    specularLight = pointLight * pow(dot(normal, surfaceToCamera), uSpecularShininess);
 
     highp float spotLight = 0.0;
     highp vec3 surfaceToSpotLight = normalize(vSurfaceToSpotLight);
     highp float inSpotLight = smoothstep(uSpotLightUpperLimit, uSpotLightLowerLimit, dot(surfaceToSpotLight, normalize(-uSpotLightDirection)));
     spotLight = inSpotLight * dot(normal, surfaceToSpotLight);
 
-    highp float maxDirectional = 0.2;
+    highp float maxDirectional = 0.6;
     highp float maxPoint = 0.4;
     directionalLight = min(directionalLight, maxDirectional);
     pointLight = min(pointLight, maxPoint);

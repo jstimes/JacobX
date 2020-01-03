@@ -166,7 +166,6 @@ export class AppComponent {
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   
-    // Tell WebGL to use our program when drawing
     this.useProgram(SHADERS.standard);
 
     gl.uniform3fv(
@@ -218,9 +217,9 @@ export class AppComponent {
     this.gameObjects.forEach((gameObject: GameObject) => {
       gameObject.renderLight(this.gl, SHADERS.light);
     });
-    
   }
 
+  // Note - doesn't include the directional light (sun)
   private getAllLights(): Light[] {
     const lights = [];
     this.gameObjects.forEach((gameObject: GameObject) => {

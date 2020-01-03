@@ -1,21 +1,42 @@
+----------------------------
+FEATURES
+----------------------------
+
 - [physics] non-flat terrain
+    - Gravity, roll down hill, jumps
 
 - [rendering] Light colors & game object materials
+    - N lights (n closest to object being rendered?)
+    - Check for blocking objects?
 - [rendering] texture for ground
+- [rendering] skybox
 
 - [physics] rotate wheels
 
+- [controls] https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API
+
 - [Game] guns & powerups
+    - Render, shoot, collision detection, health
+
+- [Game] car upgrades
 
 - [physics] rotate car from back instead of center while turning
 
 - [Rendering] Shadows
-- [rendering] N lights
 - [rendering] headlights
+    - draw circle on front
 - [Rendering/game] HUD
 
 - Sound FX
 
+- [networking] Networking lol
+
+----------------------------
+BUGS
+----------------------------
+- Directional lighting?
+
+- Specular needs to be calculated for each individual light source
 
 ----------------------------
 NOTES
