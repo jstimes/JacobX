@@ -16,7 +16,7 @@ import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
 import  {FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
 
-import { StandardShaderProgram, MAX_POINT_LIGHTS } from 'src/app/shaders/standard_shader_program';
+import { StandardShaderProgram, MAX_POINT_LIGHTS, MAX_SPOT_LIGHTS } from 'src/app/shaders/standard_shader_program';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
 import { SHADERS } from 'src/app/shaders/shaders';
@@ -81,9 +81,11 @@ export class AppComponent {
     this.car.bindControls();
     
     this.gameObjects = [this.car, this.floor];
-    for (let i=0; i< 20; i++) {
+    for (let i=0; i<MAX_SPOT_LIGHTS-1; i++) {
       const car = new Car(this.floor);
-      car.position = makeVec(Math.random() * 500 - 250, 0.0, Math.random() * 500 - 250);
+      car.position = makeVec(Math.random() * 50 - 50, 0.0, i * 50 - 50);
+      const randRot = Math.random() * -Math.PI / 4;
+      car.yRotationAngle = randRot;
       this.gameObjects.push(car);
     }
 
@@ -178,15 +180,15 @@ export class AppComponent {
 
     SHADERS.standard.setDirectionalLight(this.gl, this.scene.directionalLight);
 
-    // TODO - need array of light positions.
     let pointLightCount = 0;
+    let spotLightCount = 0;
     this.getAllLights().forEach(light => {
       switch(light.lightType) {
         case LightType.POINT:
           SHADERS.standard.setPointLight(this.gl, light, pointLightCount++);
           break;
         case LightType.SPOT:
-          SHADERS.standard.setSpotLight(this.gl, light);
+          SHADERS.standard.setSpotLight(this.gl, light, spotLightCount++);
           break;
       }
     });

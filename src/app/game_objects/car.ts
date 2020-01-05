@@ -333,9 +333,9 @@ export class Car extends GameObject {
   }
 
   getLights(): Light[] {
-    if (!this.isUsingControls) {
-      return [];
-    }
+    // if (!this.isUsingControls) {
+    //   return [];
+    // }
     return [this.headlight];
   }
 
