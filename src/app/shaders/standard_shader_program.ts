@@ -148,7 +148,12 @@ const FRAGMENT_SHADER_SOURCE = `
     return directionalAmbient + directionalDiffuse + directionalSpecular;
   }
 
-  vec3 calculate_point_light(vec3 worldPosition, vec3 normal, vec3 surfaceToCamera, Material material, PointLight pointLight) {
+  vec3 calculate_point_light(
+      vec3 worldPosition, 
+      vec3 normal, 
+      vec3 surfaceToCamera, 
+      Material material, 
+      PointLight pointLight) {
     vec3 surfaceToPointLight = pointLight.position - worldPosition;
     float distance    = length(surfaceToPointLight);
     surfaceToPointLight = normalize(surfaceToPointLight);
@@ -163,7 +168,12 @@ const FRAGMENT_SHADER_SOURCE = `
         specular * pointLight.lightColor.specular * material.specular.rgb * attenuation;
   }
 
-  vec3 calculate_spot_light(vec3 worldPosition, vec3 normal, vec3 surfaceToCamera, Material material, SpotLight spotLight) {
+  vec3 calculate_spot_light(
+      vec3 worldPosition, 
+      vec3 normal, 
+      vec3 surfaceToCamera, 
+      Material material, 
+      SpotLight spotLight) {
     vec3 ambient = spotLight.lightColor.ambient * material.diffuse.rgb;
     
     vec3 surfaceToSpotLight = spotLight.position - worldPosition;
@@ -198,8 +208,8 @@ const FRAGMENT_SHADER_SOURCE = `
     for(int i= 0; i < MAX_POINT_LIGHTS; i++)
       color += calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLights[i]);
     
-    // for(int j= 0; j < MAX_SPOT_LIGHTS; j++)
-    //   color += calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]);
+    for(int j= 0; j < MAX_SPOT_LIGHTS; j++)
+      color += calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]);
     
     vec4 color4 = vec4(color, 1.0);
 
