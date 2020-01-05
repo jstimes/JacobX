@@ -53,7 +53,6 @@ export class StreetLight extends GameObject {
     }
 
     render(gl: WebGLRenderingContext, program: StandardShaderProgram) {
-        gl.uniform4fv(program.uniformLocations.colorVec, this.color);
         program.setMaterialUniform(gl, this.material);
 
         const model = this.getModel();
@@ -74,6 +73,7 @@ export class StreetLight extends GameObject {
     }
 
     renderLight(gl: WebGLRenderingContext, program: LightShaderProgram) {
+        program.setColor(gl, makeVec4(this.light.lightColor.diffuse[0], this.light.lightColor.diffuse[1], this.light.lightColor.diffuse[2], 1.0));
         const model = mat4.create();
         mat4.translate(model, model, this.light.position);
         CUBE_RENDERABLE.render(gl, program, model);

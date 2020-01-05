@@ -127,10 +127,6 @@ export class Floor extends GameObject {
 
         const model = mat4.create();
         mat4.translate(model, model, this.position);
-        
-        gl.uniform4fv(program.uniformLocations.colorVec, this.floorColor);
-        // FLOOR_RENDERABLE.render(gl, program, model);
-
         mat4.scale(model, model, this.scale);
         SQUARE_RENDERABLE.render(gl, program, model);
     }

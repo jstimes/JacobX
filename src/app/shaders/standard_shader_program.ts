@@ -44,7 +44,6 @@ const VERTEX_SHADER_SOURCE = `
   attribute vec4 aVertexPosition;
   attribute vec3 aVertexNormal;
 
-  uniform vec4 uColor;
   uniform mat4 uNormalMatrix;
   uniform mat4 uModelMatrix;
   uniform mat4 uViewMatrix;
@@ -126,8 +125,6 @@ const FRAGMENT_SHADER_SOURCE = `
   varying vec3 vSurfaceToSpotLight;
   varying vec3 vSurfaceToCamera;
 
-  // Expected to already be normalized.
-  uniform vec3 uReverseLightDirection;
   uniform vec3 uCameraPosition;
   uniform float uFogNear;
   uniform float uFogFar;
@@ -189,11 +186,7 @@ const FRAGMENT_SHADER_SOURCE = `
     // attenuation
     float distance    = length(vSurfaceToSpotLight);
     float attenuation = 1.0 / (spotLight.constant + spotLight.linear * distance + spotLight.quadratic * (distance * distance));    
-    ambient  *= attenuation; 
-    diffuse   *= attenuation;
-    specular *= attenuation;   
-        
-    return ambient + diffuse + specular;
+    return ambient * attenuation + diffuse * attenuation + specular * attenuation;
   }
 
   void main() {

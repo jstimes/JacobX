@@ -341,11 +341,9 @@ export class Car extends GameObject {
 
   render(gl: WebGLRenderingContext, program: StandardShaderProgram): void {
     const carBodyModelMatrix = this.getCarBodyModel();
-    gl.uniform4fv(program.uniformLocations.colorVec, this.bodyColor);
     program.setMaterialUniform(gl, this.bodyMaterial);
     CAR_BODY_RENDERABLE.render(gl, program, carBodyModelMatrix);
 
-    gl.uniform4fv(program.uniformLocations.colorVec, this.wheelColor);
     program.setMaterialUniform(gl, this.wheelMaterial);
     this.renderWheel(true, carBodyModelMatrix, this.frontLeftWheelPosition, gl, program);
     this.renderWheel(false, carBodyModelMatrix, this.backLeftWheelPosition, gl, program);
