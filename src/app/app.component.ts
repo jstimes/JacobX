@@ -48,7 +48,6 @@ export class AppComponent {
 
   // Lighting
   scene: Scene;
-  specularShininess = 69;
 
   // GameObjects
   gameObjects: GameObject[] = [];
@@ -80,9 +79,15 @@ export class AppComponent {
 
     this.floor = new Floor();
     this.car = new Car(this.floor);
+    this.car.bindControls();
     this.streetLight = new StreetLight();
-    this.streetLight.position = makeVec(25, 0, -25);
+    this.streetLight.position = makeVec(50, 0, -50);
     this.gameObjects = [this.car, this.floor, this.streetLight];
+    for (let i=0; i< 20; i++) {
+      const car = new Car(this.floor);
+      car.position = makeVec(Math.random() * 500 - 250, 0.0, Math.random() * 500 - 250);
+      this.gameObjects.push(car);
+    }
 
     this.gameLoop(0);
   }
@@ -167,34 +172,16 @@ export class AppComponent {
   
     this.useProgram(SHADERS.standard);
 
-    SHADERS.standard.setLightColorUniform(this.gl, this.scene.lightColor);
-
-    gl.uniform3fv(
-      SHADERS.standard.standardShaderUniformLocations.reverseLightDirection,
-      // vec3.scale(vec3.create(), this.scene.directionalLightDirection, -1.0));
-      this.scene.directionalLightReverseDirection);
+    SHADERS.standard.setDirectionalLight(this.gl, this.scene.directionalLight);
 
     // TODO - need array of light positions.
     this.getAllLights().forEach(light => {
       switch(light.lightType) {
         case LightType.POINT:
-          gl.uniform3fv(
-            SHADERS.standard.standardShaderUniformLocations.pointLightPosition,
-            light.position);
+          SHADERS.standard.setPointLight(this.gl, light);
           break;
         case LightType.SPOT:
-          gl.uniform3fv(
-            SHADERS.standard.standardShaderUniformLocations.spotLightPosition,
-            light.position);
-          gl.uniform3fv(
-            SHADERS.standard.standardShaderUniformLocations.spotLightDirection,
-            light.direction);
-          gl.uniform1f(
-            SHADERS.standard.standardShaderUniformLocations.spotLightLowerLimit,
-            light.lowerLimit);
-          gl.uniform1f(
-            SHADERS.standard.standardShaderUniformLocations.spotLightUpperLimit,
-            light.upperLimit);
+          SHADERS.standard.setSpotLight(this.gl, light);
           break;
       }
     });
@@ -202,10 +189,6 @@ export class AppComponent {
     gl.uniform3fv(
       SHADERS.standard.standardShaderUniformLocations.cameraPosition,
       this.camera.cameraPosition);
-
-    gl.uniform1f(
-      SHADERS.standard.standardShaderUniformLocations.specularShininess, 
-      this.specularShininess);
 
     gl.uniform1f(SHADERS.standard.standardShaderUniformLocations.fogNear, this.scene.fog.fogNear);
     gl.uniform1f(SHADERS.standard.standardShaderUniformLocations.fogFar, this.scene.fog.fogFar);
@@ -234,18 +217,22 @@ export class AppComponent {
 
   private initScene() {
     this.scene = new Scene();
-    this.scene.directionalLightReverseDirection = vec3.normalize(vec3.create(), makeVec(2, 3, 1));
     this.scene.clearColor = makeVec4(0.3, 0.4, 0.9, 1.0);
     this.scene.fog = {
       fogColor: this.scene.clearColor,
       fogNear: 25.0,
       fogFar: 750.0,
     }
-    this.scene.lightColor = {
-      ambient: makeVec(.1, .1, .1),
-      diffuse: makeVec(1.0, 1.0, 1.0),
-      specular: makeVec(1.0, 1.0, 1.0),
-    }
+    const maxDirectionalLight = 0.3;
+    this.scene.directionalLight = {
+      lightType: LightType.DIRECTIONAL,
+      direction: makeVec(-2, -3, -1),
+      lightColor: {
+        ambient: makeVec(.1, .1, .1),
+        diffuse: makeVec(maxDirectionalLight, maxDirectionalLight, maxDirectionalLight),
+        specular: makeVec(maxDirectionalLight, maxDirectionalLight, maxDirectionalLight),
+      },
+    };
   }
 
   private useProgram(program: BaseShaderProgram) {

@@ -3,11 +3,12 @@ import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 import {GameObject} from './game_object';
 import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
-import { makeVec, Square } from 'src/app/math_utils';
+import { makeVec, makeVec4, Square } from 'src/app/math_utils';
+import { Material } from 'src/app/material';
 
 interface Tile {
     model: mat4;
-    color: number[];
+    material: Material;
     square: Square;
 }
 
@@ -26,7 +27,20 @@ export class Floor extends GameObject {
         this.scale = [scaling, scaling, scaling];
 
         if (this.useGrid) {
-            const gridColors = [[1, 1, 1, 1], [0.2, 0.2, 0.2, 1]];
+            const gridColors = [
+                {
+                    ambient: makeVec4(1, 1, 1, 1),
+                    diffuse: makeVec4(1, 1, 1, 1),
+                    specular: makeVec4(1, 1, 1, 1),
+                    shininess: 32,
+                }, 
+                {
+                    ambient: makeVec4(0.2, 0.2, 0.2, 1),
+                    diffuse: makeVec4(0.2, 0.2, 0.2, 1),
+                    specular: makeVec4(1, 1, 1, 1),
+                    shininess: 32,
+                },
+            ];
 
             const squareSize = 50;
             const scale = squareSize / 2;
@@ -78,7 +92,7 @@ export class Floor extends GameObject {
                     const colorIndex = (i + j) % 2;
                     const tile = {
                         model,
-                        color: gridColors[colorIndex],
+                        material: gridColors[colorIndex],
                         square,
                     };
                     this.gridTiles.push(tile);
@@ -105,7 +119,7 @@ export class Floor extends GameObject {
     render(gl: WebGLRenderingContext, program: StandardShaderProgram): void {
         if (this.useGrid) {
             this.gridTiles.forEach((tile: Tile) => {
-                gl.uniform4fv(program.uniformLocations.colorVec, tile.color);
+                program.setMaterialUniform(gl, tile.material);
                 SQUARE_RENDERABLE.render(gl, program, tile.model);
             })
             return;

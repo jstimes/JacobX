@@ -15,7 +15,16 @@ const X_AXIS = makeVec(1, 0, 0);
 const Y_AXIS = makeVec(0, 1, 0);
 const Z_AXIS = makeVec(0, 0, -1);
 
+interface Input {
+  isTurningLeft: boolean;
+  isTurningRight: boolean;
+  isGasPedalDown: boolean;
+  isBrakePedalDown: boolean;
+}
+
 export class Car extends GameObject {
+  isUsingControls: boolean = false;
+
   // Colors/materials
   readonly bodyColor = [1, 0, 0, 1];
   readonly wheelColor = [.2, .2, .2, 1];
@@ -23,6 +32,13 @@ export class Car extends GameObject {
   readonly bodyMaterial: Material = {
     ambient: makeVec4(1, 0, 0, 1),
     diffuse: makeVec4(1, 0, 0, 1),
+    specular: makeVec4(1, 0, 1, 1),
+    shininess: 1,
+  };
+
+  readonly wheelMaterial: Material = {
+    ambient: makeVec4(.2, .2, .2, 1),
+    diffuse: makeVec4(.2, .2, .2, 1),
     specular: makeVec4(1, 1, 1, 1),
     shininess: 69,
   };
@@ -32,10 +48,17 @@ export class Car extends GameObject {
   readonly headlight: SpotLight = {
     lightType: LightType.SPOT,
     position: this.headlightLocalPosition,
-    color: makeVec4(0, 0, 0, 1),
+    lightColor: {
+      ambient: makeVec(.3, .3, .3),
+      diffuse: makeVec(1, 1, 1),
+      specular: makeVec(1, 1, 1),
+    },
     direction: makeVec(0, 0, -1),
     lowerLimit: Math.cos(Math.PI / 8),
     upperLimit: Math.cos(Math.PI / 6),
+    constant: 1,
+    linear: 0.009,
+    quadratic: 0.0032,
   };
 
   xRotationAngle: number = 0;
@@ -73,7 +96,10 @@ export class Car extends GameObject {
     this.backLeftWheelPosition = makeVec(-this.xOffset, this.groundOffset,this. wheelZOffset);
     this.backRightWheelPosition = makeVec(this.xOffset, this.groundOffset, this.wheelZOffset);
     this.frontRightWheelPosition = makeVec(this.xOffset, this.groundOffset, -this.wheelZOffset);
+  }
 
+  bindControls() {
+    this.isUsingControls = true;
     CONTROLS.addAssignedControl(Key.W, "gas");
     CONTROLS.addAssignedControl(Key.S, "brake");
     CONTROLS.addAssignedControl(Key.A, "turn left");
@@ -101,6 +127,27 @@ export class Car extends GameObject {
     return vec3.normalize(worldBackward, worldBackward);
   }
 
+  getInput(): Input {
+    if (this.isUsingControls) {
+      const isTurningLeft = CONTROLS.isKeyDown(Key.A);
+      const isTurningRight = CONTROLS.isKeyDown(Key.D);
+      const isGasPedalDown = CONTROLS.isKeyDown(Key.W);
+      const isBrakePedalDown = CONTROLS.isKeyDown(Key.S);
+      return {
+        isTurningLeft,
+        isTurningRight,
+        isGasPedalDown,
+        isBrakePedalDown,
+      };
+    }
+    return {
+      isTurningLeft: false,
+      isTurningRight: false,
+      isGasPedalDown: false,
+      isBrakePedalDown: false,
+    };
+  }
+
   update(elapsedMs: number): void {
     const elapsedSeconds = elapsedMs / 1000;
     // First update position based on current velocity.
@@ -112,8 +159,13 @@ export class Car extends GameObject {
     const velocityMag = vec3.length(this.velocity);
 
     // Determine wheel orientation:
-    const isTurningLeft = CONTROLS.isKeyDown(Key.A);
-    const isTurningRight = CONTROLS.isKeyDown(Key.D);
+    const {
+        isTurningLeft,
+        isTurningRight,
+        isGasPedalDown,
+        isBrakePedalDown,
+      } = this.getInput();
+    
     const areWheelsStraight = Math.abs(this.wheelTurn) < EPSILON;
     if (isTurningRight && !isTurningLeft) {
       this.wheelTurn = Math.max(-this.maxWheelTurn, this.wheelTurn - this.wheelTurnRate);
@@ -155,8 +207,6 @@ export class Car extends GameObject {
     }
 
     const oppositeVelocityNormalized = vec3.scale(vec3.create(), velocityNormalized, -1.0);
-    const isGasPedalDown = CONTROLS.isKeyDown(Key.W);
-    const isBrakePedalDown = CONTROLS.isKeyDown(Key.S);
     const isCoasting = !isBrakePedalDown && !isGasPedalDown && velocityMag > EPSILON;
     const forward = this.getForwardVector();
     if (isGasPedalDown && !isBrakePedalDown) {
@@ -283,6 +333,9 @@ export class Car extends GameObject {
   }
 
   getLights(): Light[] {
+    if (!this.isUsingControls) {
+      return [];
+    }
     return [this.headlight];
   }
 
@@ -293,6 +346,7 @@ export class Car extends GameObject {
     CAR_BODY_RENDERABLE.render(gl, program, carBodyModelMatrix);
 
     gl.uniform4fv(program.uniformLocations.colorVec, this.wheelColor);
+    program.setMaterialUniform(gl, this.wheelMaterial);
     this.renderWheel(true, carBodyModelMatrix, this.frontLeftWheelPosition, gl, program);
     this.renderWheel(false, carBodyModelMatrix, this.backLeftWheelPosition, gl, program);
     this.renderWheel(false, carBodyModelMatrix, this.backRightWheelPosition, gl, program);
