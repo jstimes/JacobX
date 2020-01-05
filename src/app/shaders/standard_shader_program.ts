@@ -56,20 +56,12 @@ const VERTEX_SHADER_SOURCE = `
 
   varying vec3 vPosition;
   varying vec3 vNormal;
-  varying vec3 vSurfaceToPointLight;
-  varying vec3 vSurfaceToSpotLight;
-  varying vec3 vSurfaceToCamera;
 
   void main() {
     gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aVertexPosition;
 
     vNormal = (uNormalMatrix * vec4(aVertexNormal, 1.0)).xyz;
-
-    vec3 worldCoords = (uModelMatrix * aVertexPosition).xyz;
-    vPosition = worldCoords;
-    vSurfaceToPointLight = uPointLight.position - worldCoords;
-    vSurfaceToSpotLight = uSpotLight.position - worldCoords;
-    vSurfaceToCamera = uCameraPosition - worldCoords;
+    vPosition = (uModelMatrix * aVertexPosition).xyz;;
   }
 `;
 
@@ -121,9 +113,6 @@ const FRAGMENT_SHADER_SOURCE = `
 
   varying vec3 vPosition;
   varying vec3 vNormal;
-  varying vec3 vSurfaceToPointLight;
-  varying vec3 vSurfaceToSpotLight;
-  varying vec3 vSurfaceToCamera;
 
   uniform vec3 uCameraPosition;
   uniform float uFogNear;
@@ -154,12 +143,14 @@ const FRAGMENT_SHADER_SOURCE = `
     return directionalAmbient + directionalDiffuse + directionalSpecular;
   }
 
-  vec3 calculate_point_light(vec3 vSurfaceToPointLight, vec3 normal, vec3 surfaceToCamera, Material material, PointLight pointLight) {
-    vec3 surfaceToPointLight = normalize(vSurfaceToPointLight);
+  vec3 calculate_point_light(vec3 worldPosition, vec3 normal, vec3 surfaceToCamera, Material material, PointLight pointLight) {
+    vec3 surfaceToPointLight = pointLight.position - worldPosition;
+    float distance    = length(surfaceToPointLight);
+    surfaceToPointLight = normalize(surfaceToPointLight);
     float diffuse = max(dot(normal, surfaceToPointLight), 0.0);
     vec3 reflectDir = reflect(-surfaceToPointLight, normal);  
     float specular = pow(max(dot(surfaceToCamera, reflectDir), 0.0), material.shininess);
-    float distance    = length(vSurfaceToPointLight);
+    
     float attenuation = 1.0 / (pointLight.constant + pointLight.linear * distance + 
       pointLight.quadratic * (distance * distance));
     return pointLight.lightColor.ambient * material.ambient.rgb * attenuation + 
@@ -167,10 +158,12 @@ const FRAGMENT_SHADER_SOURCE = `
         specular * pointLight.lightColor.specular * material.specular.rgb * attenuation;
   }
 
-  vec3 calculate_spot_light(vec3 vSurfaceToSpotLight, vec3 normal, vec3 surfaceToCamera, Material material, SpotLight spotLight) {
+  vec3 calculate_spot_light(vec3 worldPosition, vec3 normal, vec3 surfaceToCamera, Material material, SpotLight spotLight) {
     vec3 ambient = spotLight.lightColor.ambient * material.diffuse.rgb;
     
-    vec3 surfaceToSpotLight = normalize(vSurfaceToSpotLight);
+    vec3 surfaceToSpotLight = spotLight.position - worldPosition;
+    float distance    = length(surfaceToSpotLight);
+    surfaceToSpotLight = normalize(surfaceToSpotLight);
     float diff = max(dot(normal, surfaceToSpotLight), 0.0);
     vec3 diffuse = spotLight.lightColor.diffuse * diff * material.diffuse.rgb;
     
@@ -184,19 +177,18 @@ const FRAGMENT_SHADER_SOURCE = `
     specular *= spotLightIntensity;
     
     // attenuation
-    float distance    = length(vSurfaceToSpotLight);
     float attenuation = 1.0 / (spotLight.constant + spotLight.linear * distance + spotLight.quadratic * (distance * distance));    
     return ambient * attenuation + diffuse * attenuation + specular * attenuation;
   }
 
   void main() {
     vec3 normal = normalize(vNormal);
-    vec3 surfaceToCamera = normalize(vSurfaceToCamera);
+    vec3 surfaceToCamera = normalize(uCameraPosition - vPosition);
 
     // Lights
     vec3 directionalColor = calculate_directional_light(uDirectionalLight, uMaterial, normal, surfaceToCamera);
-    vec3 pointColor = calculate_point_light(vSurfaceToPointLight, normal, surfaceToCamera, uMaterial, uPointLight);
-    vec3 spotColor = calculate_spot_light(vSurfaceToSpotLight, normal, surfaceToCamera, uMaterial, uSpotLight);
+    vec3 pointColor = calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLight);
+    vec3 spotColor = calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLight);
     
     vec4 color = vec4(directionalColor + pointColor + spotColor, 1.0);
 

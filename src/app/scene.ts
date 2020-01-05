@@ -15,7 +15,5 @@ export class Scene {
 
     fog: FogParams;
 
-    constructor() {
-
-    }
+    constructor() {}
 }
