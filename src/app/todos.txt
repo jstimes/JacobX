@@ -34,8 +34,6 @@ FEATURES
 ----------------------------
 BUGS
 ----------------------------
-- Specular needs to be calculated for each individual light source
-
 - Is turn rate constant regardless of wheel angle? I suspect it is.
 
 ----------------------------

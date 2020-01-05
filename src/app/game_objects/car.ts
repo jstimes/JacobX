@@ -10,6 +10,8 @@ import {GameObject} from './game_object';
 import { Floor } from 'src/app/game_objects/floor';
 import { Light, SpotLight, LightType } from 'src/app/lights/lights';
 import {Material} from 'src/app/material';
+import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
+import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
 
 const X_AXIS = makeVec(1, 0, 0);
 const Y_AXIS = makeVec(0, 1, 0);
@@ -43,7 +45,7 @@ export class Car extends GameObject {
     shininess: 69,
   };
 
-  readonly headlightLocalPosition: vec3 = makeVec(0, CAR_BODY_RENDERABLE.groundOffset + CAR_BODY_RENDERABLE.height / 2.0, -CAR_BODY_RENDERABLE.zOffset - 1.0);
+  readonly headlightLocalPosition: vec3 = makeVec(0, CAR_BODY_RENDERABLE.groundOffset + CAR_BODY_RENDERABLE.height / 2.0, -CAR_BODY_RENDERABLE.zOffset + 0.25);
   readonly headlightDownRotation: mat4 = mat4.rotateX(mat4.create(), mat4.create(), -Math.PI / 16.0);
   readonly headlight: SpotLight = {
     lightType: LightType.SPOT,
@@ -349,6 +351,22 @@ export class Car extends GameObject {
     this.renderWheel(false, carBodyModelMatrix, this.backLeftWheelPosition, gl, program);
     this.renderWheel(false, carBodyModelMatrix, this.backRightWheelPosition, gl, program);
     this.renderWheel(true, carBodyModelMatrix, this.frontRightWheelPosition, gl, program);
+  }
+
+  renderLight(gl: WebGLRenderingContext, program: LightShaderProgram) {
+    program.setColor(gl, makeVec4(1.0, 1.0, 1.0, 1.0));
+    const translation = mat4.create();
+    mat4.translate(translation, translation, this.headlight.position);
+    const scale = .3;
+    const model = mat4.create();
+    mat4.scale(model, model, [scale, scale ,scale]);
+    mat4.multiply(model, this.getRotationMatrix(), model)
+    mat4.multiply(model, translation, model);
+    CUBE_RENDERABLE.render(gl, program, model);
+  }
+
+  private renderGun(gl: WebGLRenderingContext, program: StandardShaderProgram) {
+    
   }
 
   private renderWheel(

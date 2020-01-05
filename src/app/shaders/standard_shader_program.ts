@@ -141,7 +141,7 @@ const FRAGMENT_SHADER_SOURCE = `
     float directionalDiffuseAmount = max(dot(normal, surfaceToLight), 0.0);
     vec3 directionalDiffuse = directionalDiffuseAmount * directionalLight.lightColor.diffuse * material.diffuse.rgb;
     
-    vec3 directionalSpecularReflectDir = reflect(surfaceToLight, normal);
+    vec3 directionalSpecularReflectDir = reflect(-surfaceToLight, normal);
     float directionalSpecularAmount = pow(max(dot(surfaceToCamera, directionalSpecularReflectDir), 0.0), material.shininess);
     vec3 directionalSpecular = directionalSpecularAmount * directionalLight.lightColor.specular * material.specular.rgb;
 
@@ -198,8 +198,8 @@ const FRAGMENT_SHADER_SOURCE = `
     for(int i= 0; i < MAX_POINT_LIGHTS; i++)
       color += calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLights[i]);
     
-    for(int j= 0; j < MAX_SPOT_LIGHTS; j++)
-      color += calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]);
+    // for(int j= 0; j < MAX_SPOT_LIGHTS; j++)
+    //   color += calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]);
     
     vec4 color4 = vec4(color, 1.0);
 
