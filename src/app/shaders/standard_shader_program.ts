@@ -65,6 +65,7 @@ const VERTEX_SHADER_SOURCE = `
   }
 `;
 
+export const MAX_POINT_LIGHTS = 6;
 const FRAGMENT_SHADER_SOURCE = `
   precision mediump float;
 
@@ -120,7 +121,8 @@ const FRAGMENT_SHADER_SOURCE = `
   uniform vec4 uFogColor;
 
   uniform DirectionalLight uDirectionalLight;
-  uniform PointLight uPointLight;
+  #define MAX_POINT_LIGHTS ${MAX_POINT_LIGHTS}  
+  uniform PointLight uPointLights[MAX_POINT_LIGHTS];
   uniform SpotLight uSpotLight;
 
   uniform Material uMaterial;
@@ -186,19 +188,34 @@ const FRAGMENT_SHADER_SOURCE = `
     vec3 surfaceToCamera = normalize(uCameraPosition - vPosition);
 
     // Lights
-    vec3 directionalColor = calculate_directional_light(uDirectionalLight, uMaterial, normal, surfaceToCamera);
-    vec3 pointColor = calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLight);
-    vec3 spotColor = calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLight);
+    vec3 color = vec3(0, 0, 0);
+
+    color += calculate_directional_light(uDirectionalLight, uMaterial, normal, surfaceToCamera);
+
+    for(int i= 0; i < MAX_POINT_LIGHTS; i++)
+      color += calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLights[i]);
     
-    vec4 color = vec4(directionalColor + pointColor + spotColor, 1.0);
+    color += calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLight);
+    
+    vec4 color4 = vec4(color, 1.0);
 
     // Fog
     float distance = length(vPosition - uCameraPosition);
     float fogAmount = smoothstep(uFogNear, uFogFar, distance);
 
-    gl_FragColor = mix(color, uFogColor, fogAmount);
+    gl_FragColor = mix(color4, uFogColor, fogAmount);
   }
 `;
+
+interface PointLightLocations { 
+  position: WebGLUniformLocation;
+  lightColorAmbient: WebGLUniformLocation;
+  lightColorDiffuse: WebGLUniformLocation;
+  lightColorSpecular: WebGLUniformLocation;
+  constant: WebGLUniformLocation;
+  linear: WebGLUniformLocation;
+  quadratic: WebGLUniformLocation;
+}
 
 export interface StandardShaderUniformLocations {
   // Directional light
@@ -206,15 +223,6 @@ export interface StandardShaderUniformLocations {
   directionalLightColorAmbient: WebGLUniformLocation;
   directionalLightColorDiffuse: WebGLUniformLocation;
   directionalLightColorSpecular: WebGLUniformLocation;
-
-  // Point light
-  pointLightPosition: WebGLUniformLocation;
-  pointLightColorAmbient: WebGLUniformLocation;
-  pointLightColorDiffuse: WebGLUniformLocation;
-  pointLightColorSpecular: WebGLUniformLocation;
-  pointLightConstant: WebGLUniformLocation;
-  pointLightLinear: WebGLUniformLocation;
-  pointLightQuadratic: WebGLUniformLocation;
 
   // Spot light
   spotLightPosition: WebGLUniformLocation;
@@ -246,6 +254,9 @@ export interface StandardShaderUniformLocations {
 export class StandardShaderProgram extends BaseShaderProgram {
   standardShaderUniformLocations: StandardShaderUniformLocations;
 
+  // Point lights
+  pointLightLocations: PointLightLocations[] = [];
+
   constructor(gl: WebGLRenderingContext) {
     super(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
 
@@ -254,14 +265,6 @@ export class StandardShaderProgram extends BaseShaderProgram {
         directionalLightColorAmbient: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.ambient'),
         directionalLightColorDiffuse: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.diffuse'),
         directionalLightColorSpecular: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.specular'),
-
-        pointLightPosition: gl.getUniformLocation(this.program, 'uPointLight.position'),
-        pointLightColorAmbient: gl.getUniformLocation(this.program, 'uPointLight.lightColor.ambient'),
-        pointLightColorDiffuse: gl.getUniformLocation(this.program, 'uPointLight.lightColor.diffuse'),
-        pointLightColorSpecular: gl.getUniformLocation(this.program, 'uPointLight.lightColor.specular'),
-        pointLightConstant: gl.getUniformLocation(this.program, 'uPointLight.constant'),
-        pointLightLinear: gl.getUniformLocation(this.program, 'uPointLight.linear'),
-        pointLightQuadratic: gl.getUniformLocation(this.program, 'uPointLight.quadratic'),
 
         spotLightPosition: gl.getUniformLocation(this.program, 'uSpotLight.position'),
         spotLightDirection: gl.getUniformLocation(this.program, 'uSpotLight.direction'),
@@ -285,6 +288,19 @@ export class StandardShaderProgram extends BaseShaderProgram {
         fogFar: gl.getUniformLocation(this.program, 'uFogFar'),
         fogColor: gl.getUniformLocation(this.program, 'uFogColor'),
     };
+
+    for (let i=0; i<MAX_POINT_LIGHTS; i++) {
+      const pointLightLocs = {
+        position: gl.getUniformLocation(this.program, `uPointLights[${i}].position`),
+        lightColorAmbient: gl.getUniformLocation(this.program, `uPointLights[${i}].lightColor.ambient`),
+        lightColorDiffuse: gl.getUniformLocation(this.program, `uPointLights[${i}].lightColor.diffuse`),
+        lightColorSpecular: gl.getUniformLocation(this.program, `uPointLights[${i}].lightColor.specular`),
+        constant: gl.getUniformLocation(this.program, `uPointLights[${i}].constant`),
+        linear: gl.getUniformLocation(this.program, `uPointLights[${i}].linear`),
+        quadratic: gl.getUniformLocation(this.program, `uPointLights[${i}].quadratic`),
+      };
+      this.pointLightLocations.push(pointLightLocs);
+    }
   }
 
   setMaterialUniform(gl: WebGLRenderingContext, material: Material) {
@@ -301,14 +317,14 @@ export class StandardShaderProgram extends BaseShaderProgram {
     gl.uniform3fv(this.standardShaderUniformLocations.directionalLightColorSpecular, directionalLight.lightColor.specular);
   }
 
-  setPointLight(gl: WebGLRenderingContext, pointLight: PointLight) {
-    gl.uniform3fv(this.standardShaderUniformLocations.pointLightPosition, pointLight.position);
-    gl.uniform3fv(this.standardShaderUniformLocations.pointLightColorAmbient, pointLight.lightColor.ambient);
-    gl.uniform3fv(this.standardShaderUniformLocations.pointLightColorDiffuse, pointLight.lightColor.diffuse);
-    gl.uniform3fv(this.standardShaderUniformLocations.pointLightColorSpecular, pointLight.lightColor.specular);
-    gl.uniform1f(this.standardShaderUniformLocations.pointLightConstant, pointLight.constant);
-    gl.uniform1f(this.standardShaderUniformLocations.pointLightLinear, pointLight.linear);
-    gl.uniform1f(this.standardShaderUniformLocations.pointLightQuadratic, pointLight.quadratic);
+  setPointLight(gl: WebGLRenderingContext, pointLight: PointLight, index: number) {
+    gl.uniform3fv(this.pointLightLocations[index].position, pointLight.position);
+    gl.uniform3fv(this.pointLightLocations[index].lightColorAmbient, pointLight.lightColor.ambient);
+    gl.uniform3fv(this.pointLightLocations[index].lightColorDiffuse, pointLight.lightColor.diffuse);
+    gl.uniform3fv(this.pointLightLocations[index].lightColorSpecular, pointLight.lightColor.specular);
+    gl.uniform1f(this.pointLightLocations[index].constant, pointLight.constant);
+    gl.uniform1f(this.pointLightLocations[index].linear, pointLight.linear);
+    gl.uniform1f(this.pointLightLocations[index].quadratic, pointLight.quadratic);
   }
 
   setSpotLight(gl: WebGLRenderingContext, spotLight: SpotLight) {

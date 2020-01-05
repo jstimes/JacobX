@@ -16,7 +16,7 @@ import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
 import  {FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
 
-import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
+import { StandardShaderProgram, MAX_POINT_LIGHTS } from 'src/app/shaders/standard_shader_program';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
 import { SHADERS } from 'src/app/shaders/shaders';
@@ -53,7 +53,6 @@ export class AppComponent {
   gameObjects: GameObject[] = [];
   car: Car;
   floor: Floor;
-  streetLight: StreetLight;
 
   ngOnInit() {
     this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -80,13 +79,18 @@ export class AppComponent {
     this.floor = new Floor();
     this.car = new Car(this.floor);
     this.car.bindControls();
-    this.streetLight = new StreetLight();
-    this.streetLight.position = makeVec(50, 0, -50);
-    this.gameObjects = [this.car, this.floor, this.streetLight];
+    
+    this.gameObjects = [this.car, this.floor];
     for (let i=0; i< 20; i++) {
       const car = new Car(this.floor);
       car.position = makeVec(Math.random() * 500 - 250, 0.0, Math.random() * 500 - 250);
       this.gameObjects.push(car);
+    }
+
+    for (let i=0; i < MAX_POINT_LIGHTS; i++) {
+      const streetLight = new StreetLight();
+      streetLight.position = makeVec(50, 0, i * 50 - 50);
+      this.gameObjects.push(streetLight);
     }
 
     this.gameLoop(0);
@@ -175,10 +179,11 @@ export class AppComponent {
     SHADERS.standard.setDirectionalLight(this.gl, this.scene.directionalLight);
 
     // TODO - need array of light positions.
+    let pointLightCount = 0;
     this.getAllLights().forEach(light => {
       switch(light.lightType) {
         case LightType.POINT:
-          SHADERS.standard.setPointLight(this.gl, light);
+          SHADERS.standard.setPointLight(this.gl, light, pointLightCount++);
           break;
         case LightType.SPOT:
           SHADERS.standard.setSpotLight(this.gl, light);
