@@ -126,6 +126,7 @@ const FRAGMENT_SHADER_SOURCE = `
   uniform PointLight uPointLights[MAX_POINT_LIGHTS];
 
   #define MAX_SPOT_LIGHTS ${MAX_SPOT_LIGHTS}  
+  uniform int uNumSpotLights;
   uniform SpotLight uSpotLights[MAX_SPOT_LIGHTS];
 
   uniform Material uMaterial;
@@ -208,8 +209,10 @@ const FRAGMENT_SHADER_SOURCE = `
     for(int i= 0; i < MAX_POINT_LIGHTS; i++)
       color += calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLights[i]);
     
-    for(int j= 0; j < MAX_SPOT_LIGHTS; j++)
-      color += calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]);
+    for(int j= 0; j < MAX_SPOT_LIGHTS; j++) {
+      float shouldUse = step(-.1, float(uNumSpotLights-1-j));
+      color += (shouldUse * calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]));
+    }
     
     vec4 color4 = vec4(color, 1.0);
 
@@ -251,6 +254,8 @@ export interface StandardShaderUniformLocations {
   directionalLightColorDiffuse: WebGLUniformLocation;
   directionalLightColorSpecular: WebGLUniformLocation;
 
+  numSpotLights: WebGLUniformLocation;
+
   // Camera
   cameraPosition: WebGLUniformLocation;
 
@@ -281,6 +286,8 @@ export class StandardShaderProgram extends BaseShaderProgram {
         directionalLightColorAmbient: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.ambient'),
         directionalLightColorDiffuse: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.diffuse'),
         directionalLightColorSpecular: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.specular'),
+
+        numSpotLights: gl.getUniformLocation(this.program, 'uNumSpotLights'),
 
         cameraPosition: gl.getUniformLocation(this.program, 'uCameraPosition'),
 
@@ -349,16 +356,21 @@ export class StandardShaderProgram extends BaseShaderProgram {
     gl.uniform1f(this.pointLightLocations[index].quadratic, pointLight.quadratic);
   }
 
-  setSpotLight(gl: WebGLRenderingContext, spotLight: SpotLight, index: number) {
-    gl.uniform3fv(this.spotLightLocations[index].position, spotLight.position);
-    gl.uniform3fv(this.spotLightLocations[index].direction, spotLight.direction);
-    gl.uniform1f(this.spotLightLocations[index].upperLimit, spotLight.upperLimit);
-    gl.uniform1f(this.spotLightLocations[index].lowerLimit, spotLight.lowerLimit);
-    gl.uniform3fv(this.spotLightLocations[index].lightColorAmbient, spotLight.lightColor.ambient);
-    gl.uniform3fv(this.spotLightLocations[index].lightColorDiffuse, spotLight.lightColor.diffuse);
-    gl.uniform3fv(this.spotLightLocations[index].lightColorSpecular, spotLight.lightColor.specular);
-    gl.uniform1f(this.spotLightLocations[index].constant, spotLight.constant);
-    gl.uniform1f(this.spotLightLocations[index].linear, spotLight.linear);
-    gl.uniform1f(this.spotLightLocations[index].quadratic, spotLight.quadratic);
+  setSpotLights(gl: WebGLRenderingContext, spotLights: SpotLight[]) {
+    const numSpotLights = spotLights.length;
+    gl.uniform1i(this.standardShaderUniformLocations.numSpotLights, numSpotLights);
+    for (let index=0; index < numSpotLights; index++) {
+      const spotLight = spotLights[index];
+      gl.uniform3fv(this.spotLightLocations[index].position, spotLight.position);
+      gl.uniform3fv(this.spotLightLocations[index].direction, spotLight.direction);
+      gl.uniform1f(this.spotLightLocations[index].upperLimit, spotLight.upperLimit);
+      gl.uniform1f(this.spotLightLocations[index].lowerLimit, spotLight.lowerLimit);
+      gl.uniform3fv(this.spotLightLocations[index].lightColorAmbient, spotLight.lightColor.ambient);
+      gl.uniform3fv(this.spotLightLocations[index].lightColorDiffuse, spotLight.lightColor.diffuse);
+      gl.uniform3fv(this.spotLightLocations[index].lightColorSpecular, spotLight.lightColor.specular);
+      gl.uniform1f(this.spotLightLocations[index].constant, spotLight.constant);
+      gl.uniform1f(this.spotLightLocations[index].linear, spotLight.linear);
+      gl.uniform1f(this.spotLightLocations[index].quadratic, spotLight.quadratic);
+    }
   }
 }

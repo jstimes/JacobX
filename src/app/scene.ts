@@ -10,7 +10,7 @@ import { Car } from 'src/app/game_objects/car';
 import { Floor } from 'src/app/game_objects/floor';
 import {Projectile} from 'src/app/game_objects/projectile';
 import { StreetLight } from 'src/app/game_objects/street_light';
-import { LightColor, DirectionalLight, PointLight, LightType, Light } from 'src/app/lights/lights';
+import { LightColor, DirectionalLight, PointLight, LightType, Light, SpotLight } from 'src/app/lights/lights';
 
 import { SHADERS } from 'src/app/shaders/shaders';
 import { StandardShaderProgram, MAX_POINT_LIGHTS, MAX_SPOT_LIGHTS } from 'src/app/shaders/standard_shader_program';
@@ -159,16 +159,15 @@ export class Scene {
 
         let pointLightCount = 0;
         let spotLightCount = 0;
-        this.getAllLights().forEach(light => {
+        const lights = this.getAllLights();
+        lights.forEach(light => {
           switch(light.lightType) {
             case LightType.POINT:
               SHADERS.standard.setPointLight(this.gl, light, pointLightCount++);
               break;
-            case LightType.SPOT:
-              SHADERS.standard.setSpotLight(this.gl, light, spotLightCount++);
-              break;
           }
         });
+        SHADERS.standard.setSpotLights(this.gl, lights.filter(light => light.lightType === LightType.SPOT) as SpotLight[]);
     
         gl.uniform3fv(
           SHADERS.standard.standardShaderUniformLocations.cameraPosition,
