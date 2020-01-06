@@ -181,7 +181,14 @@ export class Car extends GameObject {
     // Handle shooting:
     this.gun.update(elapsedMs);
     if (isShooting && this.gun.isReadyToShoot()) {
-      this.projectiles.push(this.gun.shoot(this.position, this.getForwardVector()));
+      const gunPosition = vec3.create();
+      const forward = this.getForwardVector();
+      const offset = vec3.clone(forward);
+      vec3.scale(offset, offset, CAR_BODY_RENDERABLE.zOffset);
+      vec3.add(offset, offset, makeVec(0, 3, 0));
+      vec3.add(gunPosition, this.position, offset);
+      this.projectiles.push(this.gun.shoot(gunPosition, forward, this.getRotationMatrix()));
+      console.log("shot fired");
     }
     
     // Determine wheel orientation:

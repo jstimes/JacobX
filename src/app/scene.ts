@@ -62,6 +62,7 @@ export class Scene {
         this.floor = new Floor();
         this.playerCar = new Car(this.floor);
         this.playerCar.bindControls();
+        this.cars.push(this.playerCar);
         
         this.gameObjects = [this.playerCar, this.floor];
         for (let i=0; i<MAX_SPOT_LIGHTS-1; i++) {
@@ -70,6 +71,7 @@ export class Scene {
             const randRot = Math.random() * -Math.PI / 4;
             car.yRotationAngle = randRot;
             this.gameObjects.push(car);
+            this.cars.push(car);
         }
 
         for (let i=0; i < MAX_POINT_LIGHTS; i++) {
@@ -102,7 +104,15 @@ export class Scene {
                 this.projectiles.push(proj);
                 this.gameObjects.push(proj);
             });
-        })
+        });
+
+        for (let i=this.projectiles.length - 1; i>=0; i--) {
+            const proj = this.projectiles[i];
+            if (proj.timeElapsedMs > 2000) {
+                this.projectiles.splice(i, 1);
+                this.gameObjects.splice(this.gameObjects.indexOf(proj), 1);
+            }
+        }
         this.camera.update(elapsedMs);
         this.updateChaseCam();
     }

@@ -7,7 +7,7 @@ import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 
 export class Gun extends GameObject {
 
-    timeBetweenShotsMs: number = 1000;
+    timeBetweenShotsMs: number = 100;
     timeSinceLastShot: number = 0;
 
     update(elapsedMs: number) {
@@ -18,7 +18,7 @@ export class Gun extends GameObject {
         return this.timeSinceLastShot > this.timeBetweenShotsMs;
     }
 
-    shoot(origin: vec3, forwardDirection: vec3): Projectile {
+    shoot(origin: vec3, forwardDirection: vec3, orientation: mat4): Projectile {
         this.timeSinceLastShot = 0;
         const projectile = new Projectile(origin, forwardDirection);
         return projectile;
