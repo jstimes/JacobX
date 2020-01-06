@@ -13,6 +13,7 @@ import { Light, SpotLight, LightType } from 'src/app/lights/lights';
 import {Material} from 'src/app/material';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
+import {HALF_SPHERE_RENDERABLE} from 'src/app/renderables/half_sphere_renderable';
 import { Gun } from 'src/app/game_objects/gun';
 import { Box } from 'src/app/collision';
 
@@ -417,6 +418,9 @@ export class Car extends GameObject {
     this.renderWheel(false, carBodyModelMatrix, this.backLeftWheelPosition, gl, program);
     this.renderWheel(false, carBodyModelMatrix, this.backRightWheelPosition, gl, program);
     this.renderWheel(true, carBodyModelMatrix, this.frontRightWheelPosition, gl, program);
+
+    this.renderShield(gl, program);
+    this.renderGun(gl, program);
   }
 
   renderLight(gl: WebGLRenderingContext, program: LightShaderProgram) {
@@ -433,6 +437,13 @@ export class Car extends GameObject {
 
   private renderGun(gl: WebGLRenderingContext, program: StandardShaderProgram) {
 
+  }
+
+  private renderShield(gl: WebGLRenderingContext, program: StandardShaderProgram) {
+    const model = this.getCarBodyModel();
+    const scale = mat4.scale(mat4.create, mat4.create(), [10, 10, 10]);
+    mat4.multiply(model, model, scale);
+    HALF_SPHERE_RENDERABLE.render(gl, program, model);
   }
 
   private renderWheel(

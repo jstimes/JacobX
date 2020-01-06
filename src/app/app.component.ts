@@ -24,6 +24,7 @@ import { SHADERS } from 'src/app/shaders/shaders';
 import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
 import { CONTROLS, Key } from 'src/app/controls';
 import { Scene } from 'src/app/scene';
+import { HALF_SPHERE_RENDERABLE } from 'src/app/renderables/half_sphere_renderable';
 
 
 @Component({
@@ -59,6 +60,7 @@ export class AppComponent {
     FLOOR_RENDERABLE.initBuffers(this.gl);
     CUBE_RENDERABLE.initBuffers(this.gl);
     SQUARE_RENDERABLE.initBuffers(this.gl);
+    HALF_SPHERE_RENDERABLE.initBuffers(this.gl);
   }
 
   private initScene() {

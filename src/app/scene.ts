@@ -147,7 +147,7 @@ export class Scene {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         this.gl.clearColor(this.sceneParams.clearColor[0], this.sceneParams.clearColor[1], this.sceneParams.clearColor[2], this.sceneParams.clearColor[3]);
         gl.clearDepth(1.0);                 // Clear everything
-        gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
+        //gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
         gl.enable(gl.DEPTH_TEST);           // Enable depth testing
         gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
       
