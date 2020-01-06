@@ -163,10 +163,10 @@ export class Scene {
         lights.forEach(light => {
           switch(light.lightType) {
             case LightType.POINT:
-              SHADERS.standard.setPointLight(this.gl, light, pointLightCount++);
               break;
           }
         });
+        SHADERS.standard.setPointLights(this.gl,lights.filter(light => light.lightType === LightType.POINT) as PointLight[]);
         SHADERS.standard.setSpotLights(this.gl, lights.filter(light => light.lightType === LightType.SPOT) as SpotLight[]);
     
         gl.uniform3fv(

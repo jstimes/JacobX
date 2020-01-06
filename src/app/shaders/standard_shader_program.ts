@@ -123,6 +123,7 @@ const FRAGMENT_SHADER_SOURCE = `
   uniform DirectionalLight uDirectionalLight;
 
   #define MAX_POINT_LIGHTS ${MAX_POINT_LIGHTS}  
+  uniform int uNumPointLights;
   uniform PointLight uPointLights[MAX_POINT_LIGHTS];
 
   #define MAX_SPOT_LIGHTS ${MAX_SPOT_LIGHTS}  
@@ -206,8 +207,10 @@ const FRAGMENT_SHADER_SOURCE = `
 
     color += calculate_directional_light(uDirectionalLight, uMaterial, normal, surfaceToCamera);
 
-    for(int i= 0; i < MAX_POINT_LIGHTS; i++)
-      color += calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLights[i]);
+    for(int i= 0; i < MAX_POINT_LIGHTS; i++) {
+      float shouldUse = step(-.1, float(uNumPointLights-1-i));
+      color += (shouldUse * calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLights[i]));
+    }
     
     for(int j= 0; j < MAX_SPOT_LIGHTS; j++) {
       float shouldUse = step(-.1, float(uNumSpotLights-1-j));
@@ -254,6 +257,7 @@ export interface StandardShaderUniformLocations {
   directionalLightColorDiffuse: WebGLUniformLocation;
   directionalLightColorSpecular: WebGLUniformLocation;
 
+  numPointLights: WebGLUniformLocation;
   numSpotLights: WebGLUniformLocation;
 
   // Camera
@@ -287,6 +291,7 @@ export class StandardShaderProgram extends BaseShaderProgram {
         directionalLightColorDiffuse: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.diffuse'),
         directionalLightColorSpecular: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.specular'),
 
+        numPointLights: gl.getUniformLocation(this.program, 'uNumPointLights'),
         numSpotLights: gl.getUniformLocation(this.program, 'uNumSpotLights'),
 
         cameraPosition: gl.getUniformLocation(this.program, 'uCameraPosition'),
@@ -346,14 +351,19 @@ export class StandardShaderProgram extends BaseShaderProgram {
     gl.uniform3fv(this.standardShaderUniformLocations.directionalLightColorSpecular, directionalLight.lightColor.specular);
   }
 
-  setPointLight(gl: WebGLRenderingContext, pointLight: PointLight, index: number) {
-    gl.uniform3fv(this.pointLightLocations[index].position, pointLight.position);
-    gl.uniform3fv(this.pointLightLocations[index].lightColorAmbient, pointLight.lightColor.ambient);
-    gl.uniform3fv(this.pointLightLocations[index].lightColorDiffuse, pointLight.lightColor.diffuse);
-    gl.uniform3fv(this.pointLightLocations[index].lightColorSpecular, pointLight.lightColor.specular);
-    gl.uniform1f(this.pointLightLocations[index].constant, pointLight.constant);
-    gl.uniform1f(this.pointLightLocations[index].linear, pointLight.linear);
-    gl.uniform1f(this.pointLightLocations[index].quadratic, pointLight.quadratic);
+  setPointLights(gl: WebGLRenderingContext, pointLights: PointLight[]) {
+    const numPointLights = pointLights.length;
+    gl.uniform1i(this.standardShaderUniformLocations.numPointLights, numPointLights);
+    for (let index=0; index < numPointLights; index++) {
+      const pointLight = pointLights[index];
+      gl.uniform3fv(this.pointLightLocations[index].position, pointLight.position);
+      gl.uniform3fv(this.pointLightLocations[index].lightColorAmbient, pointLight.lightColor.ambient);
+      gl.uniform3fv(this.pointLightLocations[index].lightColorDiffuse, pointLight.lightColor.diffuse);
+      gl.uniform3fv(this.pointLightLocations[index].lightColorSpecular, pointLight.lightColor.specular);
+      gl.uniform1f(this.pointLightLocations[index].constant, pointLight.constant);
+      gl.uniform1f(this.pointLightLocations[index].linear, pointLight.linear);
+      gl.uniform1f(this.pointLightLocations[index].quadratic, pointLight.quadratic);
+    }
   }
 
   setSpotLights(gl: WebGLRenderingContext, spotLights: SpotLight[]) {
