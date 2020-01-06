@@ -26,6 +26,7 @@ interface FogParams {
 
 interface SceneParams {
     clearColor: vec4;
+    floor: Floor;
     fog: FogParams;
     directionalLight: DirectionalLight;
 }
@@ -33,8 +34,6 @@ interface SceneParams {
 export class Scene {
     gl: WebGLRenderingContext;
     canvas: HTMLCanvasElement;
-
-    lastTime: number = 0;
 
     projectionMatrix: mat4;
     camera: Camera;
@@ -45,7 +44,6 @@ export class Scene {
     // GameObjects
     gameObjects: GameObject[] = [];
     playerCar: Car;
-    floor: Floor;
     cars: Car[] = [];
     streetLights: StreetLight[] = [];
     projectiles: Projectile[] = [];
@@ -59,22 +57,8 @@ export class Scene {
 
         this.camera = new Camera();
         CONTROLS.addAssignedControl(Key.M, 'Toggle chase cam');
-
-        this.floor = new Floor();
-        this.playerCar = new Car(this.floor);
-        this.playerCar.bindControls();
-        this.playerCar.hasShield = true;
-        this.cars.push(this.playerCar);
         
-        this.gameObjects = [this.playerCar, this.floor];
-        for (let i=0; i<MAX_SPOT_LIGHTS-1; i++) {
-            const car = new Car(this.floor);
-            car.position = makeVec(Math.random() * 50 - 50, 0.0, i * 50 - 50);
-            const randRot = Math.random() * -Math.PI / 4;
-            car.yRotationAngle = randRot;
-            this.gameObjects.push(car);
-            this.cars.push(car);
-        }
+        this.gameObjects = [this.sceneParams.floor];
 
         for (let i=0; i < MAX_POINT_LIGHTS; i++) {
             const streetLight = new StreetLight();
@@ -82,20 +66,18 @@ export class Scene {
             this.streetLights.push(streetLight);
             this.gameObjects.push(streetLight);
         }
-
-        this.gameLoop(0);
     }
 
-    gameLoop(now: number) {
-        const elapsedMs = now - this.lastTime;
-        this.update(elapsedMs);
-        this.render();
-        this.lastTime = now;
-    
-        window.requestAnimationFrame((elapsedTime: number) => {
-          this.gameLoop(elapsedTime);
-        });
-      }
+    setPlayerCar(car: Car) {
+        this.playerCar = car;
+        this.cars.push(this.playerCar);
+        this.gameObjects.push(this.playerCar);
+    }
+
+    addCar(car: Car) {
+        this.cars.push(car);
+        this.gameObjects.push(car);
+    }
       
     update(elapsedMs: number) {
         this.gameObjects.forEach((gameObject: GameObject) => {
@@ -142,7 +124,7 @@ export class Scene {
         this.updateChaseCam();
     }
 
-    private render() {
+    render() {
         const gl = this.gl;
         this.resize();
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);

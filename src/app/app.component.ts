@@ -25,6 +25,7 @@ import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
 import { CONTROLS, Key } from 'src/app/controls';
 import { Scene } from 'src/app/scene';
 import { HALF_SPHERE_RENDERABLE } from 'src/app/renderables/half_sphere_renderable';
+import {Ai} from 'src/app/ai';
 
 
 @Component({
@@ -37,6 +38,8 @@ export class AppComponent {
   canvas: HTMLCanvasElement;
 
   gl: WebGLRenderingContext;
+  lastTime: number = 0;
+
   scene: Scene;
 
   ngOnInit() {
@@ -52,7 +55,20 @@ export class AppComponent {
     SHADERS.init(this.gl);
     this.initRenderables();
     this.initScene();
+
+    this.gameLoop(0);
   }
+
+  gameLoop(now: number) {
+    const elapsedMs = now - this.lastTime;
+    this.scene.update(elapsedMs);
+    this.scene.render();
+    this.lastTime = now;
+
+    window.requestAnimationFrame((elapsedTime: number) => {
+        this.gameLoop(elapsedTime);
+    });
+}
 
   initRenderables() {
     CAR_BODY_RENDERABLE.initBuffers(this.gl);
@@ -66,6 +82,7 @@ export class AppComponent {
   private initScene() {
     const maxDirectionalLight = 0.3;
     const clearColor = makeVec4(0.3, 0.4, 0.9, 1.0);
+    const floor = new Floor();
     const directionalLight: DirectionalLight = {
       lightType: LightType.DIRECTIONAL,
       direction: makeVec(-2, -3, -1),
@@ -83,8 +100,22 @@ export class AppComponent {
         fogFar: 750.0,
       },
       directionalLight,
+      floor,
     };
     this.scene = new Scene(this.canvas, this.gl, sceneParams);
+
+    const playerCar = new Car(floor);
+    playerCar.bindControls();
+    playerCar.hasShield = true;
+    this.scene.setPlayerCar(playerCar);
+    for (let i=0; i<MAX_SPOT_LIGHTS-1; i++) {
+        const car = new Car(floor);
+        car.position = makeVec(Math.random() * 50 - 50, 0.0, i * 50 - 50);
+        const randRot = Math.random() * -Math.PI / 4;
+        car.yRotationAngle = randRot;
+        car.ai = new Ai(car, this.scene);
+        this.scene.addCar(car);
+    }
   }
 }
 

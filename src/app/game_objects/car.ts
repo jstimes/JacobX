@@ -16,12 +16,13 @@ import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
 import {HALF_SPHERE_RENDERABLE} from 'src/app/renderables/half_sphere_renderable';
 import { Gun } from 'src/app/game_objects/gun';
 import { Box } from 'src/app/collision';
+import {Ai} from 'src/app/ai';
 
 const X_AXIS = makeVec(1, 0, 0);
 const Y_AXIS = makeVec(0, 1, 0);
 const Z_AXIS = makeVec(0, 0, -1);
 
-interface Input {
+export interface Input {
   isTurningLeft: boolean;
   isTurningRight: boolean;
   isGasPedalDown: boolean;
@@ -31,6 +32,7 @@ interface Input {
 
 export class Car extends GameObject {
   isUsingControls: boolean = false;
+  ai: Ai;
 
   gun: Gun = new Gun();
   projectiles: Projectile[] = [];
@@ -156,13 +158,7 @@ export class Car extends GameObject {
         isShooting,
       };
     }
-    return {
-      isTurningLeft: false,
-      isTurningRight: false,
-      isGasPedalDown: false,
-      isBrakePedalDown: false,
-      isShooting: false,
-    };
+    return this.ai.getInput();
   }
 
   update(elapsedMs: number): void {
@@ -430,7 +426,7 @@ export class Car extends GameObject {
     const scale = .3;
     const model = mat4.create();
     mat4.scale(model, model, [scale, scale ,scale]);
-    mat4.multiply(model, this.getRotationMatrix(), model)
+    mat4.multiply(model, this.getRotationMatrix(), model);
     mat4.multiply(model, translation, model);
     CUBE_RENDERABLE.render(gl, program, model);
   }
@@ -448,9 +444,9 @@ export class Car extends GameObject {
   private renderShield(gl: WebGLRenderingContext, program: StandardShaderProgram) {
     const model = this.getCarBodyModel();
     const shieldMaterial: Material = {
-      ambient: makeVec4(.0, .0, .7, .1),
-      diffuse: makeVec4(.0, .0, .7, .1),
-      specular: makeVec4(.0, .2, .9, .3),
+      ambient: makeVec4(.0, .3, .7, .1),
+      diffuse: makeVec4(.0, .3, .7, .1),
+      specular: makeVec4(.0, .3, .7, .3),
       shininess: 2.0,
     };
     program.setMaterialUniform(gl, shieldMaterial);
