@@ -14,6 +14,7 @@ import {Material} from 'src/app/material';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
 import { Gun } from 'src/app/game_objects/gun';
+import { Box } from 'src/app/collision';
 
 const X_AXIS = makeVec(1, 0, 0);
 const Y_AXIS = makeVec(0, 1, 0);
@@ -32,6 +33,8 @@ export class Car extends GameObject {
 
   gun: Gun = new Gun();
   projectiles: Projectile[] = [];
+
+  health: number = 100;
 
   // Colors/materials
   readonly bodyColor = [1, 0, 0, 1];
@@ -184,7 +187,7 @@ export class Car extends GameObject {
       const gunPosition = vec3.create();
       const forward = this.getForwardVector();
       const offset = vec3.clone(forward);
-      vec3.scale(offset, offset, CAR_BODY_RENDERABLE.zOffset);
+      vec3.scale(offset, offset, CAR_BODY_RENDERABLE.zOffset + 8.0);
       vec3.add(offset, offset, makeVec(0, 3, 0));
       vec3.add(gunPosition, this.position, offset);
       this.projectiles.push(this.gun.shoot(gunPosition, forward, this.getRotationMatrix()));
@@ -323,6 +326,36 @@ export class Car extends GameObject {
     });
     this.projectiles = [];
     return projs;
+  }
+
+  onHit(projectile: Projectile) {
+    this.health -= projectile.damage;
+    this.bodyMaterial.diffuse[0] -= 0.1;
+  }
+
+  getAxisAlignedBox(): Box {
+    const min = makeVec(0, 0, 0);
+    const max = makeVec(0, 0, 0);
+    const model = this.getCarBodyModel();
+    const bottomOffset = makeVec(0, -2, 0);
+    const leftFrontBottom = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), bottomOffset, this.frontLeftWheelPosition), model);
+    const leftBackBottom = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), bottomOffset, this.backLeftWheelPosition), model);
+    const rightBackBottom = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), bottomOffset, this.backRightWheelPosition), model);
+    const rightFrontBottom = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), bottomOffset, this.frontRightWheelPosition), model);
+    const topOffset = makeVec(0, this.groundOffset + this.scale[1], 0);
+    const leftFrontTop = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), topOffset, this.frontLeftWheelPosition), model);
+    const leftBackTop = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), topOffset, this.backLeftWheelPosition), model);
+    const rightBackTop = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), topOffset, this.backRightWheelPosition), model);
+    const rightFrontTop = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), topOffset, this.frontRightWheelPosition), model);
+    min[0] = Math.min(leftFrontBottom[0], leftBackBottom[0], rightBackBottom[0], rightFrontBottom[0], leftFrontTop[0], leftBackTop[0], rightBackTop[0], rightFrontTop[0]);
+    min[1] = Math.min(leftFrontBottom[1], leftBackBottom[1], rightBackBottom[1], rightFrontBottom[1], leftFrontTop[1], leftBackTop[1], rightBackTop[1], rightFrontTop[1]);
+    min[2] = Math.min(leftFrontBottom[2], leftBackBottom[2], rightBackBottom[2], rightFrontBottom[2], leftFrontTop[2], leftBackTop[2], rightBackTop[2], rightFrontTop[2]);
+
+    max[0] = Math.max(leftFrontBottom[0], leftBackBottom[0], rightBackBottom[0], rightFrontBottom[0], leftFrontTop[0], leftBackTop[0], rightBackTop[0], rightFrontTop[0]);
+    max[1] = Math.max(leftFrontBottom[1], leftBackBottom[1], rightBackBottom[1], rightFrontBottom[1], leftFrontTop[1], leftBackTop[1], rightBackTop[1], rightFrontTop[1]);
+    max[2] = Math.max(leftFrontBottom[2], leftBackBottom[2], rightBackBottom[2], rightFrontBottom[2], leftFrontTop[2], leftBackTop[2], rightBackTop[2], rightFrontTop[2]);
+
+    return new Box(min, max);
   }
 
   getCarBodyModel(): mat4 {

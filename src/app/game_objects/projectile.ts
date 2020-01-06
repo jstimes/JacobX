@@ -16,7 +16,8 @@ export class Projectile extends GameObject {
         shininess: .1,
     }
 
-    fireSpeed: number = .01;
+    damage = 20;
+    fireSpeed: number = .08;
     initialVelocity: vec3;
     initialPosition: vec3;
     timeElapsedMs: number;

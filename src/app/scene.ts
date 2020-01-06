@@ -16,6 +16,7 @@ import { SHADERS } from 'src/app/shaders/shaders';
 import { StandardShaderProgram, MAX_POINT_LIGHTS, MAX_SPOT_LIGHTS } from 'src/app/shaders/standard_shader_program';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
+import { COLLISION, Ray, Box } from 'src/app/collision';
 
 interface FogParams {
     fogColor: vec4;
@@ -86,9 +87,9 @@ export class Scene {
 
     gameLoop(now: number) {
         const elapsedMs = now - this.lastTime;
-        this.lastTime = now;
         this.update(elapsedMs);
         this.render();
+        this.lastTime = now;
     
         window.requestAnimationFrame((elapsedTime: number) => {
           this.gameLoop(elapsedTime);
@@ -99,11 +100,13 @@ export class Scene {
         this.gameObjects.forEach((gameObject: GameObject) => {
             gameObject.update(elapsedMs);
         });
+        const carBoxes: Box[] = [];
         this.cars.forEach((car: Car) => {
             car.getProjectiles().forEach((proj: Projectile) => {
                 this.projectiles.push(proj);
                 this.gameObjects.push(proj);
             });
+            carBoxes.push(car.getAxisAlignedBox());
         });
 
         for (let i=this.projectiles.length - 1; i>=0; i--) {
@@ -111,18 +114,31 @@ export class Scene {
             if (proj.timeElapsedMs > 2000) {
                 this.projectiles.splice(i, 1);
                 this.gameObjects.splice(this.gameObjects.indexOf(proj), 1);
+                continue;
+            }
+            const ray = new Ray(proj.position, proj.initialVelocity);
+            carBoxes.forEach((box: Box, index: number) => {
+                // if (vec3.length(vec3.sub(vec3.create(), proj.position, box.bounds[0])) < 10) {
+                //     debugger;
+                // }
+                //if (COLLISION.rayIntersectsBox(ray, box, 0, 1000 * elapsedMs)) {
+                if (COLLISION.pointInBox(proj.position, box)) {  
+                    console.log("target hit");
+                    this.cars[index].onHit(proj);
+                    this.projectiles.splice(i, 1);
+                    this.gameObjects.splice(this.gameObjects.indexOf(proj), 1);
+                }
+            });
+        }
+        for (let j=this.cars.length - 1; j>=0; j--) {
+            const car = this.cars[j];
+            if (car.health <= 0) {
+                this.cars.splice(j, 1);
+                this.gameObjects.splice(this.gameObjects.indexOf(car), 1);
             }
         }
-        this.camera.update(elapsedMs);
+        this.camera.update(elapsedMs); 
         this.updateChaseCam();
-    }
-
-    setSceneParamsUniforms() {
-        const gl = this.gl;
-        SHADERS.standard.setDirectionalLight(gl, this.sceneParams.directionalLight);
-        gl.uniform1f(SHADERS.standard.standardShaderUniformLocations.fogNear, this.sceneParams.fog.fogNear);
-        gl.uniform1f(SHADERS.standard.standardShaderUniformLocations.fogFar, this.sceneParams.fog.fogFar);
-        gl.uniform4fv(SHADERS.standard.standardShaderUniformLocations.fogColor, this.sceneParams.fog.fogColor);
     }
 
     private render() {
@@ -215,6 +231,14 @@ export class Scene {
                           zNear,
                           zFar);
         return projectionMatrix;
+    }
+
+    private setSceneParamsUniforms() {
+        const gl = this.gl;
+        SHADERS.standard.setDirectionalLight(gl, this.sceneParams.directionalLight);
+        gl.uniform1f(SHADERS.standard.standardShaderUniformLocations.fogNear, this.sceneParams.fog.fogNear);
+        gl.uniform1f(SHADERS.standard.standardShaderUniformLocations.fogFar, this.sceneParams.fog.fogFar);
+        gl.uniform4fv(SHADERS.standard.standardShaderUniformLocations.fogColor, this.sceneParams.fog.fogColor);
     }
 
     private useProgram(program: BaseShaderProgram) {
