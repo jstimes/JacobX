@@ -63,8 +63,8 @@ const VERTEX_SHADER_SOURCE = `
   }
 `;
 
-export const MAX_POINT_LIGHTS = 6;
-export const MAX_SPOT_LIGHTS = 6;
+export const MAX_POINT_LIGHTS = 12;
+export const MAX_SPOT_LIGHTS = 12;
 
 const FRAGMENT_SHADER_SOURCE = `
   precision mediump float;
