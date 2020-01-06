@@ -27,9 +27,9 @@ export class StreetLight extends GameObject {
         lightType: LightType.POINT,
         position: makeVec(-3, 17, 0),
         lightColor: {
-            ambient: makeVec(.5, .5, .5),
-            diffuse: makeVec(.5, .5, .5),
-            specular: makeVec(.1, .1, .1),
+            ambient: makeVec4(.5, .5, .5, 1.0),
+            diffuse: makeVec4(.5, .5, .5, 1.0),
+            specular: makeVec4(.1, .1, .1, 1.0),
         },
         constant: 1,
         linear: 0.009,

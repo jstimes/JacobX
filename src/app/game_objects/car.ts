@@ -36,6 +36,7 @@ export class Car extends GameObject {
   projectiles: Projectile[] = [];
 
   health: number = 100;
+  hasShield: boolean = false;
 
   // Colors/materials
   readonly bodyColor = [1, 0, 0, 1];
@@ -61,9 +62,9 @@ export class Car extends GameObject {
     lightType: LightType.SPOT,
     position: this.headlightLocalPosition,
     lightColor: {
-      ambient: makeVec(.3, .3, .3),
-      diffuse: makeVec(1, 1, 1),
-      specular: makeVec(1, 1, 1),
+      ambient: makeVec4(.3, .3, .3, 1.0),
+      diffuse: makeVec4(1, 1, 1, 1.0),
+      specular: makeVec4(1, 1, 1, 1.0),
     },
     direction: makeVec(0, 0, -1),
     lowerLimit: Math.cos(Math.PI / 8),
@@ -419,7 +420,6 @@ export class Car extends GameObject {
     this.renderWheel(false, carBodyModelMatrix, this.backRightWheelPosition, gl, program);
     this.renderWheel(true, carBodyModelMatrix, this.frontRightWheelPosition, gl, program);
 
-    this.renderShield(gl, program);
     this.renderGun(gl, program);
   }
 
@@ -439,9 +439,22 @@ export class Car extends GameObject {
 
   }
 
+  renderTranslucents(gl: WebGLRenderingContext, program: StandardShaderProgram): void {
+    if (this.hasShield) {
+      this.renderShield(gl, program);
+    }
+  }
+
   private renderShield(gl: WebGLRenderingContext, program: StandardShaderProgram) {
     const model = this.getCarBodyModel();
-    const scale = mat4.scale(mat4.create, mat4.create(), [10, 10, 10]);
+    const shieldMaterial: Material = {
+      ambient: makeVec4(.0, .0, .7, .1),
+      diffuse: makeVec4(.0, .0, .7, .1),
+      specular: makeVec4(.0, .2, .9, .3),
+      shininess: 2.0,
+    };
+    program.setMaterialUniform(gl, shieldMaterial);
+    const scale = mat4.scale(mat4.create, mat4.create(), [12, 12, 12]);
     mat4.multiply(model, model, scale);
     HALF_SPHERE_RENDERABLE.render(gl, program, model);
   }

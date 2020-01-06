@@ -17,4 +17,6 @@ export class GameObject {
     }
 
     renderLight(gl: WebGLRenderingContext, program: LightShaderProgram): void {}
+
+    renderTranslucents(gl: WebGLRenderingContext, program: StandardShaderProgram): void {}
 }

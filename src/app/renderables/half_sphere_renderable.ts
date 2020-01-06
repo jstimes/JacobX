@@ -8,7 +8,7 @@ class HalfSphereRenderable extends Renderable {
         super();
 
         const squares: Square[] = [];
-        const deltaPhi = Math.PI / 80;
+        const deltaPhi = Math.PI / 36;
         const TWO_PI = Math.PI * 2.0;
         const PI_OVER_TWO = Math.PI / 2.0;
         for (let yheda = 0; yheda < PI_OVER_TWO - deltaPhi; yheda += deltaPhi) {

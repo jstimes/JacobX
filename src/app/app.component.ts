@@ -41,7 +41,7 @@ export class AppComponent {
 
   ngOnInit() {
     this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    this.gl = this.canvas.getContext('webgl');
+    this.gl = this.canvas.getContext('webgl', {alpha: true, premultipliedAlpha: false});
   
     // Only continue if WebGL is available and working
     if (this.gl === null) {
@@ -70,9 +70,9 @@ export class AppComponent {
       lightType: LightType.DIRECTIONAL,
       direction: makeVec(-2, -3, -1),
       lightColor: {
-        ambient: makeVec(.1, .1, .1),
-        diffuse: makeVec(maxDirectionalLight, maxDirectionalLight, maxDirectionalLight),
-        specular: makeVec(maxDirectionalLight, maxDirectionalLight, maxDirectionalLight),
+        ambient: makeVec4(.1, .1, .1, 1.0),
+        diffuse: makeVec4(maxDirectionalLight, maxDirectionalLight, maxDirectionalLight, 1.0),
+        specular: makeVec4(maxDirectionalLight, maxDirectionalLight, maxDirectionalLight, 1.0),
       },
     };
     const sceneParams = {

@@ -63,6 +63,7 @@ export class Scene {
         this.floor = new Floor();
         this.playerCar = new Car(this.floor);
         this.playerCar.bindControls();
+        this.playerCar.hasShield = true;
         this.cars.push(this.playerCar);
         
         this.gameObjects = [this.playerCar, this.floor];
@@ -146,8 +147,11 @@ export class Scene {
         this.resize();
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         this.gl.clearColor(this.sceneParams.clearColor[0], this.sceneParams.clearColor[1], this.sceneParams.clearColor[2], this.sceneParams.clearColor[3]);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        // gl.colorMask(true, true, true, true);
         gl.clearDepth(1.0);                 // Clear everything
-        //gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
+        gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
         gl.enable(gl.DEPTH_TEST);           // Enable depth testing
         gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
       
@@ -175,6 +179,9 @@ export class Scene {
         
         this.gameObjects.forEach((gameObject: GameObject) => {
           gameObject.render(this.gl, SHADERS.standard);
+        });
+        this.gameObjects.forEach((gameObject: GameObject) => {
+            gameObject.renderTranslucents(this.gl, SHADERS.standard);
         });
     
         this.useProgram(SHADERS.light);

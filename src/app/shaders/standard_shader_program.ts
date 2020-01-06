@@ -6,9 +6,9 @@ const VERTEX_SHADER_SOURCE = `
   precision mediump float;
 
   struct LightColor {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
   };
 
   struct DirectionalLight {
@@ -77,9 +77,9 @@ const FRAGMENT_SHADER_SOURCE = `
   };
 
   struct LightColor {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
   };
 
   struct DirectionalLight {
@@ -132,25 +132,25 @@ const FRAGMENT_SHADER_SOURCE = `
 
   uniform Material uMaterial;
 
-  vec3 calculate_directional_light(
+  vec4 calculate_directional_light(
       DirectionalLight directionalLight, 
       Material material, 
       vec3 normal, 
       vec3 surfaceToCamera) {
     vec3 surfaceToLight = normalize(-directionalLight.direction);
-    vec3 directionalAmbient = directionalLight.lightColor.ambient * material.ambient.rgb;
+    vec4 directionalAmbient = directionalLight.lightColor.ambient * material.ambient;
 
     float directionalDiffuseAmount = max(dot(normal, surfaceToLight), 0.0);
-    vec3 directionalDiffuse = directionalDiffuseAmount * directionalLight.lightColor.diffuse * material.diffuse.rgb;
+    vec4 directionalDiffuse = directionalDiffuseAmount * directionalLight.lightColor.diffuse * material.diffuse;
     
     vec3 directionalSpecularReflectDir = reflect(-surfaceToLight, normal);
     float directionalSpecularAmount = pow(max(dot(surfaceToCamera, directionalSpecularReflectDir), 0.0), material.shininess);
-    vec3 directionalSpecular = directionalSpecularAmount * directionalLight.lightColor.specular * material.specular.rgb;
+    vec4 directionalSpecular = directionalSpecularAmount * directionalLight.lightColor.specular * material.specular;
 
     return directionalAmbient + directionalDiffuse + directionalSpecular;
   }
 
-  vec3 calculate_point_light(
+  vec4 calculate_point_light(
       vec3 worldPosition, 
       vec3 normal, 
       vec3 surfaceToCamera, 
@@ -165,28 +165,28 @@ const FRAGMENT_SHADER_SOURCE = `
     
     float attenuation = 1.0 / (pointLight.constant + pointLight.linear * distance + 
         pointLight.quadratic * (distance * distance));
-    return pointLight.lightColor.ambient * material.ambient.rgb * attenuation + 
-        diffuse * pointLight.lightColor.diffuse * material.diffuse.rgb * attenuation + 
-        specular * pointLight.lightColor.specular * material.specular.rgb * attenuation;
+    return pointLight.lightColor.ambient * material.ambient * attenuation + 
+        diffuse * pointLight.lightColor.diffuse * material.diffuse * attenuation + 
+        specular * pointLight.lightColor.specular * material.specular * attenuation;
   }
 
-  vec3 calculate_spot_light(
+  vec4 calculate_spot_light(
       vec3 worldPosition, 
       vec3 normal, 
       vec3 surfaceToCamera, 
       Material material, 
       SpotLight spotLight) {
-    vec3 ambient = spotLight.lightColor.ambient * material.diffuse.rgb;
+    vec4 ambient = spotLight.lightColor.ambient * material.diffuse;
     
     vec3 surfaceToSpotLight = spotLight.position - worldPosition;
     float distance    = length(surfaceToSpotLight);
     surfaceToSpotLight = normalize(surfaceToSpotLight);
     float diff = max(dot(normal, surfaceToSpotLight), 0.0);
-    vec3 diffuse = spotLight.lightColor.diffuse * diff * material.diffuse.rgb;
+    vec4 diffuse = spotLight.lightColor.diffuse * diff * material.diffuse;
     
     vec3 reflectDir = reflect(-surfaceToSpotLight, normal);  
     float spec = pow(max(dot(surfaceToCamera, reflectDir), 0.0), material.shininess);
-    vec3 specular = spotLight.lightColor.specular * spec * material.specular.rgb;
+    vec4 specular = spotLight.lightColor.specular * spec * material.specular;
     
     float spotLightIntensity = smoothstep(spotLight.upperLimit, spotLight.lowerLimit, dot(surfaceToSpotLight, normalize(-spotLight.direction)));
     ambient *= spotLightIntensity;
@@ -203,7 +203,7 @@ const FRAGMENT_SHADER_SOURCE = `
     vec3 surfaceToCamera = normalize(uCameraPosition - vPosition);
 
     // Lights
-    vec3 color = vec3(0, 0, 0);
+    vec4 color = vec4(0, 0, 0, 0);
 
     color += calculate_directional_light(uDirectionalLight, uMaterial, normal, surfaceToCamera);
 
@@ -216,14 +216,12 @@ const FRAGMENT_SHADER_SOURCE = `
       float shouldUse = step(-.1, float(uNumSpotLights-1-j));
       color += (shouldUse * calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]));
     }
-    
-    vec4 color4 = vec4(color, 1.0);
 
     // Fog
     float distance = length(vPosition - uCameraPosition);
     float fogAmount = smoothstep(uFogNear, uFogFar, distance);
-
-    gl_FragColor = mix(color4, uFogColor, fogAmount);
+    color = mix(color, vec4(uFogColor.xyz, color.w), fogAmount);
+    gl_FragColor = color;
   }
 `;
 
@@ -346,9 +344,9 @@ export class StandardShaderProgram extends BaseShaderProgram {
 
   setDirectionalLight(gl: WebGLRenderingContext, directionalLight: DirectionalLight) {
     gl.uniform3fv(this.standardShaderUniformLocations.directionalLightDirection, directionalLight.direction);
-    gl.uniform3fv(this.standardShaderUniformLocations.directionalLightColorAmbient, directionalLight.lightColor.ambient);
-    gl.uniform3fv(this.standardShaderUniformLocations.directionalLightColorDiffuse, directionalLight.lightColor.diffuse);
-    gl.uniform3fv(this.standardShaderUniformLocations.directionalLightColorSpecular, directionalLight.lightColor.specular);
+    gl.uniform4fv(this.standardShaderUniformLocations.directionalLightColorAmbient, directionalLight.lightColor.ambient);
+    gl.uniform4fv(this.standardShaderUniformLocations.directionalLightColorDiffuse, directionalLight.lightColor.diffuse);
+    gl.uniform4fv(this.standardShaderUniformLocations.directionalLightColorSpecular, directionalLight.lightColor.specular);
   }
 
   setPointLights(gl: WebGLRenderingContext, pointLights: PointLight[]) {
@@ -357,9 +355,9 @@ export class StandardShaderProgram extends BaseShaderProgram {
     for (let index=0; index < numPointLights; index++) {
       const pointLight = pointLights[index];
       gl.uniform3fv(this.pointLightLocations[index].position, pointLight.position);
-      gl.uniform3fv(this.pointLightLocations[index].lightColorAmbient, pointLight.lightColor.ambient);
-      gl.uniform3fv(this.pointLightLocations[index].lightColorDiffuse, pointLight.lightColor.diffuse);
-      gl.uniform3fv(this.pointLightLocations[index].lightColorSpecular, pointLight.lightColor.specular);
+      gl.uniform4fv(this.pointLightLocations[index].lightColorAmbient, pointLight.lightColor.ambient);
+      gl.uniform4fv(this.pointLightLocations[index].lightColorDiffuse, pointLight.lightColor.diffuse);
+      gl.uniform4fv(this.pointLightLocations[index].lightColorSpecular, pointLight.lightColor.specular);
       gl.uniform1f(this.pointLightLocations[index].constant, pointLight.constant);
       gl.uniform1f(this.pointLightLocations[index].linear, pointLight.linear);
       gl.uniform1f(this.pointLightLocations[index].quadratic, pointLight.quadratic);
@@ -375,9 +373,9 @@ export class StandardShaderProgram extends BaseShaderProgram {
       gl.uniform3fv(this.spotLightLocations[index].direction, spotLight.direction);
       gl.uniform1f(this.spotLightLocations[index].upperLimit, spotLight.upperLimit);
       gl.uniform1f(this.spotLightLocations[index].lowerLimit, spotLight.lowerLimit);
-      gl.uniform3fv(this.spotLightLocations[index].lightColorAmbient, spotLight.lightColor.ambient);
-      gl.uniform3fv(this.spotLightLocations[index].lightColorDiffuse, spotLight.lightColor.diffuse);
-      gl.uniform3fv(this.spotLightLocations[index].lightColorSpecular, spotLight.lightColor.specular);
+      gl.uniform4fv(this.spotLightLocations[index].lightColorAmbient, spotLight.lightColor.ambient);
+      gl.uniform4fv(this.spotLightLocations[index].lightColorDiffuse, spotLight.lightColor.diffuse);
+      gl.uniform4fv(this.spotLightLocations[index].lightColorSpecular, spotLight.lightColor.specular);
       gl.uniform1f(this.spotLightLocations[index].constant, spotLight.constant);
       gl.uniform1f(this.spotLightLocations[index].linear, spotLight.linear);
       gl.uniform1f(this.spotLightLocations[index].quadratic, spotLight.quadratic);
