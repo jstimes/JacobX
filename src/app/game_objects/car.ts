@@ -7,11 +7,13 @@ import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
 import { CONTROLS } from 'src/app/controls';
 import { Key } from 'src/app/controls';
 import {GameObject} from './game_object';
+import {Projectile} from 'src/app/game_objects/projectile';
 import { Floor } from 'src/app/game_objects/floor';
 import { Light, SpotLight, LightType } from 'src/app/lights/lights';
 import {Material} from 'src/app/material';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
+import { Gun } from 'src/app/game_objects/gun';
 
 const X_AXIS = makeVec(1, 0, 0);
 const Y_AXIS = makeVec(0, 1, 0);
@@ -22,10 +24,14 @@ interface Input {
   isTurningRight: boolean;
   isGasPedalDown: boolean;
   isBrakePedalDown: boolean;
+  isShooting: boolean;
 }
 
 export class Car extends GameObject {
   isUsingControls: boolean = false;
+
+  gun: Gun = new Gun();
+  projectiles: Projectile[] = [];
 
   // Colors/materials
   readonly bodyColor = [1, 0, 0, 1];
@@ -106,6 +112,7 @@ export class Car extends GameObject {
     CONTROLS.addAssignedControl(Key.S, "brake");
     CONTROLS.addAssignedControl(Key.A, "turn left");
     CONTROLS.addAssignedControl(Key.D, "turn right");
+    CONTROLS.addAssignedControl(Key.SPACE, "shoot");
   }
 
   getUpVector(): vec3 {
@@ -135,11 +142,13 @@ export class Car extends GameObject {
       const isTurningRight = CONTROLS.isKeyDown(Key.D);
       const isGasPedalDown = CONTROLS.isKeyDown(Key.W);
       const isBrakePedalDown = CONTROLS.isKeyDown(Key.S);
+      const isShooting = CONTROLS.isKeyDown(Key.SPACE);
       return {
         isTurningLeft,
         isTurningRight,
         isGasPedalDown,
         isBrakePedalDown,
+        isShooting,
       };
     }
     return {
@@ -147,6 +156,7 @@ export class Car extends GameObject {
       isTurningRight: false,
       isGasPedalDown: false,
       isBrakePedalDown: false,
+      isShooting: false,
     };
   }
 
@@ -160,14 +170,21 @@ export class Car extends GameObject {
     const velocityNormalized = vec3.normalize(vec3.create(), this.velocity);
     const velocityMag = vec3.length(this.velocity);
 
-    // Determine wheel orientation:
     const {
         isTurningLeft,
         isTurningRight,
         isGasPedalDown,
         isBrakePedalDown,
+        isShooting,
       } = this.getInput();
+
+    // Handle shooting:
+    this.gun.update(elapsedMs);
+    if (isShooting && this.gun.isReadyToShoot()) {
+      this.projectiles.push(this.gun.shoot(this.position, this.getForwardVector()));
+    }
     
+    // Determine wheel orientation:
     const areWheelsStraight = Math.abs(this.wheelTurn) < EPSILON;
     if (isTurningRight && !isTurningLeft) {
       this.wheelTurn = Math.max(-this.maxWheelTurn, this.wheelTurn - this.wheelTurnRate);
@@ -292,6 +309,15 @@ export class Car extends GameObject {
     this.headlight.direction = vec3.transformMat4(vec3.create(), this.getForwardVector(), this.headlightDownRotation);
   }
 
+  getProjectiles(): Projectile[] {
+    const projs = [];
+    this.projectiles.forEach(proj => {
+      projs.push(proj);
+    });
+    this.projectiles = [];
+    return projs;
+  }
+
   getCarBodyModel(): mat4 {
     const carBodyModelMatrix = mat4.create();
     mat4.translate(carBodyModelMatrix,
@@ -366,7 +392,7 @@ export class Car extends GameObject {
   }
 
   private renderGun(gl: WebGLRenderingContext, program: StandardShaderProgram) {
-    
+
   }
 
   private renderWheel(

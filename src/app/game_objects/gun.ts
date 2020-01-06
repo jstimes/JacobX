@@ -1,4 +1,30 @@
+import {vec3, mat4} from 'src/app/gl-matrix.js';
 
-export class Gun {
-    
+import {makeVec, makeVec4, addVec, hasSignChange, sign, Square, EPSILON} from 'src/app/math_utils';
+import {Projectile} from 'src/app/game_objects/projectile';
+import { GameObject } from 'src/app/game_objects/game_object';
+import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
+
+export class Gun extends GameObject {
+
+    timeBetweenShotsMs: number = 1000;
+    timeSinceLastShot: number = 0;
+
+    update(elapsedMs: number) {
+        this.timeSinceLastShot += elapsedMs;
+    }
+
+    isReadyToShoot(): boolean {
+        return this.timeSinceLastShot > this.timeBetweenShotsMs;
+    }
+
+    shoot(origin: vec3, forwardDirection: vec3): Projectile {
+        this.timeSinceLastShot = 0;
+        const projectile = new Projectile(origin, forwardDirection);
+        return projectile;
+    }
+
+    render(gl: WebGLRenderingContext, program: StandardShaderProgram): void {
+        
+    }
 }
