@@ -106,7 +106,7 @@ export class AppComponent {
 
     const playerCar = new Car(floor);
     playerCar.bindControls();
-    playerCar.hasShield = true;
+    // playerCar.hasShield = true;
     this.scene.setPlayerCar(playerCar);
     for (let i=0; i<MAX_SPOT_LIGHTS-1; i++) {
         const car = new Car(floor);

@@ -31,6 +31,8 @@ export interface Input {
 }
 
 export class Car extends GameObject {
+  isRenderAabb: boolean = true;
+
   isUsingControls: boolean = false;
   ai: Ai;
 
@@ -336,15 +338,15 @@ export class Car extends GameObject {
     const max = makeVec(0, 0, 0);
     const model = this.getCarBodyModel();
     const bottomOffset = makeVec(0, -2, 0);
-    const leftFrontBottom = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), bottomOffset, this.frontLeftWheelPosition), model);
-    const leftBackBottom = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), bottomOffset, this.backLeftWheelPosition), model);
-    const rightBackBottom = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), bottomOffset, this.backRightWheelPosition), model);
-    const rightFrontBottom = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), bottomOffset, this.frontRightWheelPosition), model);
-    const topOffset = makeVec(0, this.groundOffset + this.scale[1], 0);
-    const leftFrontTop = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), topOffset, this.frontLeftWheelPosition), model);
-    const leftBackTop = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), topOffset, this.backLeftWheelPosition), model);
-    const rightBackTop = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), topOffset, this.backRightWheelPosition), model);
-    const rightFrontTop = vec3.transformMat4(vec3.create(), vec3.add(vec3.create(), topOffset, this.frontRightWheelPosition), model);
+    const leftFrontBottom = vec3.transformMat4(vec3.create(), makeVec(-this.bodyWidth, 0, -CAR_BODY_RENDERABLE.zOffset), model);
+    const leftBackBottom = vec3.transformMat4(vec3.create(), makeVec(-this.bodyWidth, 0, CAR_BODY_RENDERABLE.zOffset), model);
+    const rightBackBottom = vec3.transformMat4(vec3.create(), makeVec(this.bodyWidth, 0, CAR_BODY_RENDERABLE.zOffset), model);
+    const rightFrontBottom = vec3.transformMat4(vec3.create(), makeVec(this.bodyWidth, 0, -CAR_BODY_RENDERABLE.zOffset), model);
+    const yMax = CAR_BODY_RENDERABLE.yMax;
+    const leftFrontTop = vec3.transformMat4(vec3.create(), makeVec(-this.bodyWidth, yMax, -CAR_BODY_RENDERABLE.zOffset), model);
+    const leftBackTop = vec3.transformMat4(vec3.create(), makeVec(-this.bodyWidth, yMax, CAR_BODY_RENDERABLE.zOffset), model);
+    const rightBackTop = vec3.transformMat4(vec3.create(), makeVec(this.bodyWidth, yMax, CAR_BODY_RENDERABLE.zOffset), model);
+    const rightFrontTop = vec3.transformMat4(vec3.create(), makeVec(this.bodyWidth, yMax, -CAR_BODY_RENDERABLE.zOffset), model);
     min[0] = Math.min(leftFrontBottom[0], leftBackBottom[0], rightBackBottom[0], rightFrontBottom[0], leftFrontTop[0], leftBackTop[0], rightBackTop[0], rightFrontTop[0]);
     min[1] = Math.min(leftFrontBottom[1], leftBackBottom[1], rightBackBottom[1], rightFrontBottom[1], leftFrontTop[1], leftBackTop[1], rightBackTop[1], rightFrontTop[1]);
     min[2] = Math.min(leftFrontBottom[2], leftBackBottom[2], rightBackBottom[2], rightFrontBottom[2], leftFrontTop[2], leftBackTop[2], rightBackTop[2], rightFrontTop[2]);
@@ -439,6 +441,28 @@ export class Car extends GameObject {
     if (this.hasShield) {
       this.renderShield(gl, program);
     }
+    if (!this.isRenderAabb) {
+      return;
+    }
+
+    // Render the AABB
+    const box = this.getAxisAlignedBox();
+    const model = mat4.create();
+    const x = box.bounds[1][0] - box.bounds[0][0]; 
+    const y = box.bounds[1][1] - box.bounds[0][1];
+    const z = box.bounds[1][2] - box.bounds[0][2];
+    mat4.translate(model, model, makeVec(this.position[0], this.position[1] + y/2, this.position[2]));
+    mat4.scale(model, model, [
+      x/2, y/2, z/2
+    ]);
+    const shieldMaterial: Material = {
+      ambient: makeVec4(.0, .3, .7, .1),
+      diffuse: makeVec4(.0, .3, .7, .1),
+      specular: makeVec4(.0, .3, .7, .3),
+      shininess: 2.0,
+    };
+    program.setMaterialUniform(gl, shieldMaterial);
+    CUBE_RENDERABLE.render(gl, program, model);
   }
 
   private renderShield(gl: WebGLRenderingContext, program: StandardShaderProgram) {

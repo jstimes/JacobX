@@ -22,12 +22,19 @@ export class Ai {
 
     getInput(): Input {
         const random = Math.random();
+        // return {
+        //     isTurningLeft: random > .3,
+        //     isTurningRight: random > .3,
+        //     isGasPedalDown: random > .1,
+        //     isBrakePedalDown: false,
+        //     isShooting: random > .9,
+        // };
         return {
-            isTurningLeft: random > .3,
-            isTurningRight: random > .3,
-            isGasPedalDown: random > .1,
-            isBrakePedalDown: random > .9,
-            isShooting: random > .95,
+            isTurningLeft: false,
+            isTurningRight: false,
+            isGasPedalDown: false,
+            isBrakePedalDown: false,
+            isShooting: false,
         };
     }
 }

@@ -40,7 +40,6 @@ export class Projectile extends GameObject {
         const positionUpdate = vec3.create();
         const v0t = vec3.scale(vec3.create(), this.initialVelocity, this.timeElapsedMs);
         const halfAtSquared = makeVec(0, 0, 0);
-        // debugger;
         vec3.add(positionUpdate, v0t, halfAtSquared);
         vec3.add(this.position, this.position, positionUpdate);
     }
