@@ -344,11 +344,9 @@ export class Car extends GameObject {
   }
 
   onPowerUp(powerUp: PowerUp): void {
-    debugger;
     switch(powerUp.powerUpType) {
       case PowerUpType.SHIELD:
         this.activateShield();
-        console.log("ass");
         break;
     }
   }
@@ -477,16 +475,20 @@ export class Car extends GameObject {
     mat4.scale(model, model, [
       x/2, y/2, z/2
     ]);
-    const shieldMaterial: Material = {
-      ambient: makeVec4(.0, .3, .7, .1),
-      diffuse: makeVec4(.0, .3, .7, .1),
-      specular: makeVec4(.0, .3, .7, .3),
+    const boxMaterial: Material = {
+      ambient: makeVec4(.3, .3, .1, .1),
+      diffuse: makeVec4(.3, .3, .1, .1),
+      specular: makeVec4(.3, .3, .1, .3),
       shininess: 2.0,
     };
-    program.setMaterialUniform(gl, shieldMaterial);
+    program.setMaterialUniform(gl, boxMaterial);
     CUBE_RENDERABLE.render(gl, program, model);
   }
 
+  getHasShield(): boolean {
+    return this.hasShield;
+  }
+  shieldRadius = 13;
   private renderShield(gl: WebGLRenderingContext, program: StandardShaderProgram) {
     const model = this.getCarBodyModel();
     const shieldPercentage = this.shieldHealth / this.MAX_SHIELD_HEALTH;
@@ -497,7 +499,7 @@ export class Car extends GameObject {
       shininess: 2.0,
     };
     program.setMaterialUniform(gl, shieldMaterial);
-    const scale = mat4.scale(mat4.create, mat4.create(), [12, 12, 12]);
+    const scale = mat4.scale(mat4.create, mat4.create(), [this.shieldRadius, this.shieldRadius, this.shieldRadius]);
     mat4.multiply(model, model, scale);
     HALF_SPHERE_RENDERABLE.render(gl, program, model);
   }

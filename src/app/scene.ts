@@ -125,9 +125,16 @@ export class Scene {
             }
             const ray = new Ray(proj.position, proj.initialVelocity);
             carBoxes.forEach((box: Box, index: number) => {
-                if (COLLISION.pointInBox(proj.position, box)) {  
+                let hit = false;
+                const car = this.cars[index];
+                if (car.getHasShield()) {
+                    hit = vec3.length(vec3.sub(vec3.create(), car.position, proj.position)) < car.shieldRadius;
+                } else if (COLLISION.pointInBox(proj.position, box)) {  
+                   hit = true;
+                }
+                if (hit) {
                     console.log("target hit");
-                    this.cars[index].onHit(proj);
+                    car.onHit(proj);
                     this.projectiles.splice(i, 1);
                     this.gameObjects.splice(this.gameObjects.indexOf(proj), 1);
                 }

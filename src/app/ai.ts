@@ -20,7 +20,7 @@ export class Ai {
         this.scene = scene;
     }
 
-    wait = 2000;
+    wait = 1000;
     getInput(): Input {
         if (this.wait > 0) {
             this.wait--;
