@@ -208,13 +208,14 @@ const FRAGMENT_SHADER_SOURCE = `
     color += calculate_directional_light(uDirectionalLight, uMaterial, normal, surfaceToCamera);
 
     for(int i= 0; i < MAX_POINT_LIGHTS; i++) {
-      float shouldUse = step(-.1, float(uNumPointLights-1-i));
-      color += (shouldUse * calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLights[i]));
+      if (i>=uNumPointLights) { break; }
+      color += calculate_point_light(vPosition, normal, surfaceToCamera, uMaterial, uPointLights[i]);
     }
     
     for(int j= 0; j < MAX_SPOT_LIGHTS; j++) {
+      if (j>=uNumSpotLights) { break; }
       float shouldUse = step(-.1, float(uNumSpotLights-1-j));
-      color += (shouldUse * calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]));
+      color += calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]);
     }
 
     // Fog
