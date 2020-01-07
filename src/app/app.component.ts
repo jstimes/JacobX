@@ -108,8 +108,89 @@ export class AppComponent {
     playerCar.bindControls();
     // playerCar.activateShield();
     this.scene.setPlayerCar(playerCar);
+
+    const carMats = [
+      {
+        ambient: makeVec4(.2, 0, .2, 1),
+        diffuse: makeVec4(.2, 0, .2, 1),
+        specular: makeVec4(.2, 0, .2, 1),
+        shininess: 1,
+      },
+      {
+        ambient: makeVec4(.14, .4, 0, 1),
+        diffuse: makeVec4(.14, .4, 0, 1),
+        specular: makeVec4(.14, .4, 0, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0, .7, .2, 1),
+        diffuse: makeVec4(0, .7, .2, 1),
+        specular: makeVec4(0, .7, .2, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0, .27, .62, 1),
+        diffuse: makeVec4(0, .27, .62, 1),
+        specular: makeVec4(0, .27, .62, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0.1, .107, .42, 1),
+        diffuse: makeVec4(0.1, .107, .42, 1),
+        specular: makeVec4(0.1, .107, .42, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0.3, .37, .32, 1),
+        diffuse: makeVec4(0.3, .37, .32, 1),
+        specular: makeVec4(0.3, .37, .32, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0.4, .2, .2, 1),
+        diffuse: makeVec4(0.4, .2, .2, 1),
+        specular: makeVec4(0.4, .2, .2, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(.1, .9, .1, 1),
+        diffuse: makeVec4(.1, .9, .1, 1),
+        specular: makeVec4(.1, .9, .1, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(.8, .7, .5, 1),
+        diffuse: makeVec4(.8, .7, .5, 1),
+        specular: makeVec4(.8, .7, .5, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(.4, .4, .4, 1),
+        diffuse: makeVec4(.4, .4, .4, 1),
+        specular: makeVec4(.4, .4, .4, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0.6, .78, .82, 1),
+        diffuse: makeVec4(0.6, .78, .82, 1),
+        specular: makeVec4(0.6, .78, .82, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0.35, .53, .33, 1),
+        diffuse: makeVec4(0.35, .53, .33, 1),
+        specular: makeVec4(0.35, .53, .33, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0.123, .456, .789, 1),
+        diffuse: makeVec4(0.123, .456, .789, 1),
+        specular: makeVec4(0.123, .456, .789, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0.555, .222, .669, 1),
+        diffuse: makeVec4(0.555, .222, .669, 1),
+        specular: makeVec4(0.555, .222, .669, 1),
+        shininess: 1,
+      },{
+        ambient: makeVec4(0.2, .765, .299, 1),
+        diffuse: makeVec4(0.2, .765, .299, 1),
+        specular: makeVec4(0.2, .765, .299, 1),
+        shininess: 1,
+      }
+    ];
     for (let i=0; i<MAX_SPOT_LIGHTS-1; i++) {
         const car = new Car(floor);
+        car.bodyMaterial = carMats[i];
         car.position = makeVec(Math.random() * 50 - 50, 0.0, i * 50 - 50);
         const randRot = Math.random() * -Math.PI / 4;
         car.yRotationAngle = randRot;

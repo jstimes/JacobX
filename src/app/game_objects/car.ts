@@ -49,12 +49,13 @@ export class Car extends GameObject {
   readonly bodyColor = [1, 0, 0, 1];
   readonly wheelColor = [.2, .2, .2, 1];
 
-  readonly bodyMaterial: Material = {
+  readonly DEFAULT_BODY_MATERIAL: Material = {
     ambient: makeVec4(1, 0, 0, 1),
     diffuse: makeVec4(1, 0, 0, 1),
     specular: makeVec4(1, 0, 1, 1),
     shininess: 1,
   };
+  bodyMaterial = this.DEFAULT_BODY_MATERIAL;
 
   readonly wheelMaterial: Material = {
     ambient: makeVec4(.2, .2, .2, 1),
