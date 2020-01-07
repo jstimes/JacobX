@@ -9,6 +9,7 @@ import { GameObject } from 'src/app/game_objects/game_object';
 import { Car } from 'src/app/game_objects/car';
 import { Floor } from 'src/app/game_objects/floor';
 import {Projectile} from 'src/app/game_objects/projectile';
+import {PowerUp, Shield} from 'src/app/game_objects/powerup';
 import { StreetLight } from 'src/app/game_objects/street_light';
 import { LightColor, DirectionalLight, PointLight, LightType, Light, SpotLight } from 'src/app/lights/lights';
 
@@ -48,6 +49,10 @@ export class Scene {
     streetLights: StreetLight[] = [];
     projectiles: Projectile[] = [];
 
+    powerUps: PowerUp[] = [];
+    powerUpSpawns: vec3[]
+    maxPowerUps = 5;
+
     constructor(canvas: HTMLCanvasElement, gl: WebGLRenderingContext, sceneParams: SceneParams) {
         this.canvas = canvas;
         this.gl = gl;
@@ -60,12 +65,30 @@ export class Scene {
         
         this.gameObjects = [this.sceneParams.floor];
 
-        for (let i=0; i < MAX_POINT_LIGHTS; i++) {
+        for (let i=0; i < MAX_POINT_LIGHTS / 2; i++) {
             const streetLight = new StreetLight();
             streetLight.position = makeVec(50, 0, i * 50 - 50);
             this.streetLights.push(streetLight);
             this.gameObjects.push(streetLight);
         }
+
+        this.powerUpSpawns = [];
+        this.maxPowerUps = MAX_POINT_LIGHTS / 2;
+        for (let j=0; j<this.maxPowerUps; j++) {
+            const x = j * 125 - 250;
+            const z = -275; //j * 50 - 250;
+            const y = this.sceneParams.floor.getYAtXZ(x, z) + 4.0;
+            const pos = makeVec(x, y, z)
+            this.powerUpSpawns.push(pos);
+            const powerUp = this.getRandomPowerUp();
+            powerUp.position = pos;
+            this.powerUps.push(powerUp);
+            this.gameObjects.push(powerUp);
+        }
+    }
+
+    getRandomPowerUp(): PowerUp {
+        return new Shield();
     }
 
     setPlayerCar(car: Car) {
@@ -92,6 +115,7 @@ export class Scene {
             carBoxes.push(car.getAxisAlignedBox());
         });
 
+        // Check for projectile-car collisions.
         for (let i=this.projectiles.length - 1; i>=0; i--) {
             const proj = this.projectiles[i];
             if (proj.timeElapsedMs > 2000) {
@@ -101,10 +125,6 @@ export class Scene {
             }
             const ray = new Ray(proj.position, proj.initialVelocity);
             carBoxes.forEach((box: Box, index: number) => {
-                // if (vec3.length(vec3.sub(vec3.create(), proj.position, box.bounds[0])) < 10) {
-                //     debugger;
-                // }
-                //if (COLLISION.rayIntersectsBox(ray, box, 0, 1000 * elapsedMs)) {
                 if (COLLISION.pointInBox(proj.position, box)) {  
                     console.log("target hit");
                     this.cars[index].onHit(proj);
@@ -113,11 +133,25 @@ export class Scene {
                 }
             });
         }
+        // Check for dead cars.
         for (let j=this.cars.length - 1; j>=0; j--) {
             const car = this.cars[j];
             if (car.health <= 0) {
                 this.cars.splice(j, 1);
                 this.gameObjects.splice(this.gameObjects.indexOf(car), 1);
+            }
+        }
+
+        // Check for cars picking up power ups.
+        for (let j=this.cars.length - 1; j>=0; j--) {
+            const car = this.cars[j];
+            for (let p = this.powerUps.length - 1; p >= 0; p--) {
+                const powerUp = this.powerUps[p];
+                if (vec3.length(vec3.sub(vec3.create(), powerUp.position, car.position)) < 10) {
+                    car.onPowerUp(powerUp);
+                    this.powerUps.splice(p, 1);
+                    this.gameObjects.splice(this.gameObjects.indexOf(powerUp), 1);
+                }
             }
         }
         this.camera.update(elapsedMs); 
@@ -131,7 +165,6 @@ export class Scene {
         this.gl.clearColor(this.sceneParams.clearColor[0], this.sceneParams.clearColor[1], this.sceneParams.clearColor[2], this.sceneParams.clearColor[3]);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        // gl.colorMask(true, true, true, true);
         gl.clearDepth(1.0);                 // Clear everything
         gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
         gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -146,12 +179,6 @@ export class Scene {
         let pointLightCount = 0;
         let spotLightCount = 0;
         const lights = this.getAllLights();
-        lights.forEach(light => {
-          switch(light.lightType) {
-            case LightType.POINT:
-              break;
-          }
-        });
         SHADERS.standard.setPointLights(this.gl,lights.filter(light => light.lightType === LightType.POINT) as PointLight[]);
         SHADERS.standard.setSpotLights(this.gl, lights.filter(light => light.lightType === LightType.SPOT) as SpotLight[]);
     

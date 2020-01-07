@@ -214,7 +214,6 @@ const FRAGMENT_SHADER_SOURCE = `
     
     for(int j= 0; j < MAX_SPOT_LIGHTS; j++) {
       if (j>=uNumSpotLights) { break; }
-      float shouldUse = step(-.1, float(uNumSpotLights-1-j));
       color += calculate_spot_light(vPosition, normal, surfaceToCamera, uMaterial, uSpotLights[j]);
     }
 

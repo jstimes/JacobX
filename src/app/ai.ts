@@ -20,21 +20,32 @@ export class Ai {
         this.scene = scene;
     }
 
+    wait = 2000;
     getInput(): Input {
+        if (this.wait > 0) {
+            this.wait--;
+            return {
+                    isTurningLeft: false,
+                    isTurningRight: false,
+                    isGasPedalDown: false,
+                    isBrakePedalDown: false,
+                    isShooting: false,
+                };
+        }
         const random = Math.random();
-        // return {
-        //     isTurningLeft: random > .3,
-        //     isTurningRight: random > .3,
-        //     isGasPedalDown: random > .1,
-        //     isBrakePedalDown: false,
-        //     isShooting: random > .9,
-        // };
         return {
-            isTurningLeft: false,
-            isTurningRight: false,
-            isGasPedalDown: false,
+            isTurningLeft: random > .3,
+            isTurningRight: random > .3,
+            isGasPedalDown: random > .1,
             isBrakePedalDown: false,
-            isShooting: false,
+            isShooting: random > .9,
         };
+        // return {
+        //     isTurningLeft: false,
+        //     isTurningRight: false,
+        //     isGasPedalDown: false,
+        //     isBrakePedalDown: false,
+        //     isShooting: false,
+        // };
     }
 }

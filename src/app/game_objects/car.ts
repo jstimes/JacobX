@@ -17,6 +17,7 @@ import {HALF_SPHERE_RENDERABLE} from 'src/app/renderables/half_sphere_renderable
 import { Gun } from 'src/app/game_objects/gun';
 import { Box } from 'src/app/collision';
 import {Ai} from 'src/app/ai';
+import { PowerUp, PowerUpType } from 'src/app/game_objects/powerup';
 
 const X_AXIS = makeVec(1, 0, 0);
 const Y_AXIS = makeVec(0, 1, 0);
@@ -31,7 +32,7 @@ export interface Input {
 }
 
 export class Car extends GameObject {
-  isRenderAabb: boolean = true;
+  isRenderAabb: boolean = false;
 
   isUsingControls: boolean = false;
   ai: Ai;
@@ -40,7 +41,9 @@ export class Car extends GameObject {
   projectiles: Projectile[] = [];
 
   health: number = 100;
-  hasShield: boolean = false;
+  private hasShield: boolean = false;
+  private shieldHealth: number = 100;
+  readonly MAX_SHIELD_HEALTH = 100;
 
   // Colors/materials
   readonly bodyColor = [1, 0, 0, 1];
@@ -328,9 +331,26 @@ export class Car extends GameObject {
     return projs;
   }
 
-  onHit(projectile: Projectile) {
+  onHit(projectile: Projectile): void {
+    if (this.hasShield) {
+      this.shieldHealth -= projectile.damage;
+      if (this.shieldHealth < 0) {
+        this.hasShield = false;
+      }
+      return;
+    }
     this.health -= projectile.damage;
     this.bodyMaterial.diffuse[0] -= 0.1;
+  }
+
+  onPowerUp(powerUp: PowerUp): void {
+    debugger;
+    switch(powerUp.powerUpType) {
+      case PowerUpType.SHIELD:
+        this.activateShield();
+        console.log("ass");
+        break;
+    }
   }
 
   getAxisAlignedBox(): Box {
@@ -401,9 +421,6 @@ export class Car extends GameObject {
   }
 
   getLights(): Light[] {
-    // if (!this.isUsingControls) {
-    //   return [];
-    // }
     return [this.headlight];
   }
 
@@ -437,6 +454,11 @@ export class Car extends GameObject {
 
   }
 
+  activateShield() {
+    this.hasShield = true;
+    this.shieldHealth = this.MAX_SHIELD_HEALTH;
+  }
+
   renderTranslucents(gl: WebGLRenderingContext, program: StandardShaderProgram): void {
     if (this.hasShield) {
       this.renderShield(gl, program);
@@ -467,10 +489,11 @@ export class Car extends GameObject {
 
   private renderShield(gl: WebGLRenderingContext, program: StandardShaderProgram) {
     const model = this.getCarBodyModel();
+    const shieldPercentage = this.shieldHealth / this.MAX_SHIELD_HEALTH;
     const shieldMaterial: Material = {
-      ambient: makeVec4(.0, .3, .7, .1),
-      diffuse: makeVec4(.0, .3, .7, .1),
-      specular: makeVec4(.0, .3, .7, .3),
+      ambient: makeVec4(.0, .3, .7, .1 * shieldPercentage),
+      diffuse: makeVec4(.0, .3, .7, .1 * shieldPercentage),
+      specular: makeVec4(.0, .3, .7, .3 * shieldPercentage),
       shininess: 2.0,
     };
     program.setMaterialUniform(gl, shieldMaterial);
