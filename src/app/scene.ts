@@ -1,15 +1,15 @@
-import {vec3, vec4, mat4} from './gl-matrix.js';
+import { vec3, vec4, mat4 } from './gl-matrix.js';
 import { makeVec, makeVec4, addVec } from './math_utils';
 
 import { CONTROLS, Key } from 'src/app/controls';
 
-import {Camera} from './camera';
+import { Camera } from './camera';
 
 import { GameObject } from 'src/app/game_objects/game_object';
 import { Car } from 'src/app/game_objects/car';
 import { Floor } from 'src/app/game_objects/floor';
-import {Projectile} from 'src/app/game_objects/projectile';
-import {PowerUp, Shield} from 'src/app/game_objects/powerup';
+import { Projectile } from 'src/app/game_objects/projectile';
+import { PowerUp, Shield } from 'src/app/game_objects/powerup';
 import { StreetLight } from 'src/app/game_objects/street_light';
 import { LightColor, DirectionalLight, PointLight, LightType, Light, SpotLight } from 'src/app/lights/lights';
 
@@ -39,7 +39,7 @@ export class Scene {
     projectionMatrix: mat4;
     camera: Camera;
     isChaseCam: boolean = true;
-    
+
     sceneParams: SceneParams;
 
     // GameObjects
@@ -62,10 +62,10 @@ export class Scene {
 
         this.camera = new Camera();
         CONTROLS.addAssignedControl(Key.M, 'Toggle chase cam');
-        
+
         this.gameObjects = [this.sceneParams.floor];
 
-        for (let i=0; i < MAX_POINT_LIGHTS / 2; i++) {
+        for (let i = 0; i < MAX_POINT_LIGHTS / 2; i++) {
             const streetLight = new StreetLight();
             streetLight.position = makeVec(50, 0, i * 50 - 50);
             this.streetLights.push(streetLight);
@@ -74,7 +74,7 @@ export class Scene {
 
         this.powerUpSpawns = [];
         this.maxPowerUps = MAX_POINT_LIGHTS / 2;
-        for (let j=0; j<this.maxPowerUps; j++) {
+        for (let j = 0; j < this.maxPowerUps; j++) {
             const x = j * 125 - 250;
             const z = -275; //j * 50 - 250;
             const y = this.sceneParams.floor.getYAtXZ(x, z) + 4.0;
@@ -101,7 +101,7 @@ export class Scene {
         this.cars.push(car);
         this.gameObjects.push(car);
     }
-      
+
     update(elapsedMs: number) {
         this.gameObjects.forEach((gameObject: GameObject) => {
             gameObject.update(elapsedMs);
@@ -116,7 +116,7 @@ export class Scene {
         });
 
         // Check for projectile-car collisions.
-        for (let i=this.projectiles.length - 1; i>=0; i--) {
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const proj = this.projectiles[i];
             if (proj.timeElapsedMs > 2000) {
                 this.projectiles.splice(i, 1);
@@ -129,8 +129,8 @@ export class Scene {
                 const car = this.cars[index];
                 if (car.getHasShield()) {
                     hit = vec3.length(vec3.sub(vec3.create(), car.position, proj.position)) < car.shieldRadius;
-                } else if (COLLISION.pointInBox(proj.position, box)) {  
-                   hit = true;
+                } else if (COLLISION.pointInBox(proj.position, box)) {
+                    hit = true;
                 }
                 if (hit) {
                     console.log("target hit");
@@ -141,7 +141,7 @@ export class Scene {
             });
         }
         // Check for dead cars.
-        for (let j=this.cars.length - 1; j>=0; j--) {
+        for (let j = this.cars.length - 1; j >= 0; j--) {
             const car = this.cars[j];
             if (car.health <= 0) {
                 this.cars.splice(j, 1);
@@ -150,7 +150,7 @@ export class Scene {
         }
 
         // Check for cars picking up power ups.
-        for (let j=this.cars.length - 1; j>=0; j--) {
+        for (let j = this.cars.length - 1; j >= 0; j--) {
             const car = this.cars[j];
             for (let p = this.powerUps.length - 1; p >= 0; p--) {
                 const powerUp = this.powerUps[p];
@@ -161,7 +161,7 @@ export class Scene {
                 }
             }
         }
-        this.camera.update(elapsedMs); 
+        this.camera.update(elapsedMs);
         this.updateChaseCam();
     }
 
@@ -176,42 +176,42 @@ export class Scene {
         gl.enable(gl.CULL_FACE);            // Don't draw back facing triangles.
         gl.enable(gl.DEPTH_TEST);           // Enable depth testing
         gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
-      
+
         // Clear the canvas before we start drawing on it.
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      
+
         this.useProgram(SHADERS.standard);
         this.setSceneParamsUniforms();
 
         let pointLightCount = 0;
         let spotLightCount = 0;
         const lights = this.getAllLights();
-        SHADERS.standard.setPointLights(this.gl,lights.filter(light => light.lightType === LightType.POINT) as PointLight[]);
+        SHADERS.standard.setPointLights(this.gl, lights.filter(light => light.lightType === LightType.POINT) as PointLight[]);
         SHADERS.standard.setSpotLights(this.gl, lights.filter(light => light.lightType === LightType.SPOT) as SpotLight[]);
-    
+
         gl.uniform3fv(
-          SHADERS.standard.standardShaderUniformLocations.cameraPosition,
-          this.camera.cameraPosition);
-        
+            SHADERS.standard.standardShaderUniformLocations.cameraPosition,
+            this.camera.cameraPosition);
+
         this.gameObjects.forEach((gameObject: GameObject) => {
-          gameObject.render(this.gl, SHADERS.standard);
+            gameObject.render(this.gl, SHADERS.standard);
         });
         this.gameObjects.forEach((gameObject: GameObject) => {
             gameObject.renderTranslucents(this.gl, SHADERS.standard);
         });
-    
+
         this.useProgram(SHADERS.light);
         this.gameObjects.forEach((gameObject: GameObject) => {
-          gameObject.renderLight(this.gl, SHADERS.light);
+            gameObject.renderLight(this.gl, SHADERS.light);
         });
     }
-    
+
     // Note - doesn't include the directional light (sun)
     private getAllLights(): Light[] {
         const lights = [];
         this.gameObjects.forEach((gameObject: GameObject) => {
             gameObject.getLights().forEach((light: Light) => {
-            lights.push(light);
+                lights.push(light);
             });
         });
         return lights;
@@ -232,26 +232,27 @@ export class Scene {
 
     private createProjectionMatrix(): mat4 {
         const projectionMatrix = mat4.create();
-    
+
         // Create a perspective matrix, a special matrix that is
         // used to simulate the distortion of perspective in a camera.
         // Our field of view is 45 degrees, with a width/height
         // ratio that matches the display size of the canvas
         // and we only want to see objects between 0.1 units
         // and 100 units away from the camera.
-      
+
+        const widthHeight = getWidthHeight(this.gl);
         const fieldOfView = 45 * Math.PI / 180;   // in radians
-        const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
+        const aspect = widthHeight.x / widthHeight.y;
         const zNear = 0.1;
         const zFar = 1000.0;
-      
+
         // note: glmatrix.js always has the first argument
         // as the destination to receive the result.
         mat4.perspective(projectionMatrix,
-                          fieldOfView,
-                          aspect,
-                          zNear,
-                          zFar);
+            fieldOfView,
+            aspect,
+            zNear,
+            zFar);
         return projectionMatrix;
     }
 
@@ -267,36 +268,45 @@ export class Scene {
         this.gl.useProgram(program.program);
         // Set the shader uniforms
         this.gl.uniformMatrix4fv(
-          program.uniformLocations.projectionMatrix,
-          false,
-          this.projectionMatrix);
-    
+            program.uniformLocations.projectionMatrix,
+            false,
+            this.projectionMatrix);
+
         this.gl.uniformMatrix4fv(
-          program.uniformLocations.viewMatrix,
-          false,
-          this.camera.getViewMatrix());
-      }
-    
-      // Thanks
-      // https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
-      private resize() {
+            program.uniformLocations.viewMatrix,
+            false,
+            this.camera.getViewMatrix());
+    }
+
+    // Thanks
+    // https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+    private resize() {
         const realToCSSPixels = window.devicePixelRatio;
-    
+
         // Lookup the size the browser is displaying the canvas in CSS pixels
         // and compute a size needed to make our drawingbuffer match it in
         // device pixels.
-        const displayWidth  = Math.floor(this.gl.canvas.clientWidth  * realToCSSPixels);
-        const displayHeight = Math.floor(this.gl.canvas.clientHeight * realToCSSPixels);
-       
+        const widthHeight = getWidthHeight(this.gl);
+        const displayWidth = Math.floor(widthHeight.x * realToCSSPixels);
+        const displayHeight = Math.floor(widthHeight.y * realToCSSPixels);
+
         // Check if the canvas is not the same size.
-        if (this.canvas.width  !== displayWidth ||
-          this.canvas.height !== displayHeight) {
-       
-          // Make the canvas the same size
-          this.canvas.width  = displayWidth;
-          this.canvas.height = displayHeight;
+        if (this.canvas.width !== displayWidth ||
+            this.canvas.height !== displayHeight) {
+
+            // Make the canvas the same size
+            this.canvas.width = displayWidth;
+            this.canvas.height = displayHeight;
         }
-    
+
         this.projectionMatrix = this.createProjectionMatrix();
-      }
+    }
+}
+
+function getWidthHeight(gl: WebGLRenderingContext): { x: number; y: number } {
+    const canvas = gl.canvas as HTMLCanvasElement;
+    return {
+        x: canvas.clientWidth,
+        y: canvas.clientHeight,
+    };
 }

@@ -1,7 +1,7 @@
-import {vec3, mat4} from 'src/app/gl-matrix.js';
+import { vec3, mat4 } from 'src/app/gl-matrix.js';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
-import {GameObject} from './game_object';
+import { GameObject } from './game_object';
 import { SQUARE_RENDERABLE } from 'src/app/renderables/square_renderable';
 import { makeVec, makeVec4, Square } from 'src/app/math_utils';
 import { Material } from 'src/app/material';
@@ -14,12 +14,12 @@ interface Tile {
 
 export class Floor extends GameObject {
 
-    floorColor = [.05, .2, .05, 1.0];
+    private readonly floorColor = [.05, .2, .05, 1.0];
 
-    useGrid = true;
-    gridTiles: Tile[] = [];
+    private readonly useGrid = true;
+    private readonly gridTiles: Tile[] = [];
 
-    width = 1000;
+    private readonly width = 1000;
 
     constructor() {
         super();
@@ -33,7 +33,7 @@ export class Floor extends GameObject {
                     diffuse: makeVec4(1, 1, 1, 1),
                     specular: makeVec4(1, 1, 1, 1),
                     shininess: 32,
-                }, 
+                },
                 {
                     ambient: makeVec4(0.2, 0.2, 0.2, 1),
                     diffuse: makeVec4(0.2, 0.2, 0.2, 1),
@@ -50,28 +50,28 @@ export class Floor extends GameObject {
             const elevationStartZ = squaresPerRow / 2 + 2;
             const deltaY = 8;
             const halfDeltaY = deltaY / 2;
-            for (let i=0; i<squaresPerRow; i++) {
-                for (let j=0; j<squaresPerRow; j++) {
+            for (let i = 0; i < squaresPerRow; i++) {
+                for (let j = 0; j < squaresPerRow; j++) {
                     let yFront = 0;
                     let yBack = 0;
                     if (j < 4) {
                         yFront = deltaY * (j);
                         yBack = deltaY * (j + 1);
-                    } else  if (j === 4) {
-                        yFront = yBack = deltaY *4;
+                    } else if (j === 4) {
+                        yFront = yBack = deltaY * 4;
                     } else if (j <= 8) {
-                        yFront = deltaY * (8-j+1)
-                        yBack = deltaY * (8-j);
+                        yFront = deltaY * (8 - j + 1)
+                        yBack = deltaY * (8 - j);
                     }
                     // const position = [initialPosition[0] + squareSize * i, y, initialPosition[2] + squareSize * j];
-                    
+
                     const leftX = initialPosition[0] + squareSize * i;
                     const rightX = leftX + squareSize;
                     const frontZ = initialPosition[2] + squareSize * j;
                     const backZ = frontZ + squareSize;
                     const square = new Square({
                         a: makeVec(leftX, yFront, frontZ),
-                        b: makeVec(leftX, yBack, backZ), 
+                        b: makeVec(leftX, yBack, backZ),
                         c: makeVec(rightX, yBack, backZ),
                         d: makeVec(rightX, yFront, frontZ),
                     });
@@ -83,7 +83,7 @@ export class Floor extends GameObject {
                     const squareCenter = makeVec(leftX + scale, (yFront + yBack) / 2.0, frontZ + scale);
                     const model = mat4.create();
                     mat4.translate(model, model, squareCenter);
-                    mat4.rotate(model,  
+                    mat4.rotate(model,
                         model,
                         rotAngleAboutXAxis,
                         makeVec(1, 0, 0));

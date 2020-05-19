@@ -1,4 +1,4 @@
-import {BaseShaderProgram, BaseShaderUniformLocations} from './base_shader_program';
+import { BaseShaderProgram, BaseShaderUniformLocations } from './base_shader_program';
 import { Material } from 'src/app/material';
 import { LightColor, PointLight, SpotLight, DirectionalLight } from 'src/app/lights/lights';
 
@@ -225,86 +225,86 @@ const FRAGMENT_SHADER_SOURCE = `
   }
 `;
 
-interface PointLightLocations { 
-  position: WebGLUniformLocation;
-  lightColorAmbient: WebGLUniformLocation;
-  lightColorDiffuse: WebGLUniformLocation;
-  lightColorSpecular: WebGLUniformLocation;
-  constant: WebGLUniformLocation;
-  linear: WebGLUniformLocation;
-  quadratic: WebGLUniformLocation;
+interface PointLightLocations {
+  readonly position: WebGLUniformLocation;
+  readonly lightColorAmbient: WebGLUniformLocation;
+  readonly lightColorDiffuse: WebGLUniformLocation;
+  readonly lightColorSpecular: WebGLUniformLocation;
+  readonly constant: WebGLUniformLocation;
+  readonly linear: WebGLUniformLocation;
+  readonly quadratic: WebGLUniformLocation;
 }
 
-interface SpotLightLocations { 
-  position: WebGLUniformLocation;
-  direction: WebGLUniformLocation;
-  lowerLimit: WebGLUniformLocation;
-  upperLimit: WebGLUniformLocation;
-  lightColorAmbient: WebGLUniformLocation;
-  lightColorDiffuse: WebGLUniformLocation;
-  lightColorSpecular: WebGLUniformLocation;
-  constant: WebGLUniformLocation;
-  linear: WebGLUniformLocation;
-  quadratic: WebGLUniformLocation;
+interface SpotLightLocations {
+  readonly position: WebGLUniformLocation;
+  readonly direction: WebGLUniformLocation;
+  readonly lowerLimit: WebGLUniformLocation;
+  readonly upperLimit: WebGLUniformLocation;
+  readonly lightColorAmbient: WebGLUniformLocation;
+  readonly lightColorDiffuse: WebGLUniformLocation;
+  readonly lightColorSpecular: WebGLUniformLocation;
+  readonly constant: WebGLUniformLocation;
+  readonly linear: WebGLUniformLocation;
+  readonly quadratic: WebGLUniformLocation;
 }
 
 export interface StandardShaderUniformLocations {
   // Directional light
-  directionalLightDirection: WebGLUniformLocation;
-  directionalLightColorAmbient: WebGLUniformLocation;
-  directionalLightColorDiffuse: WebGLUniformLocation;
-  directionalLightColorSpecular: WebGLUniformLocation;
+  readonly directionalLightDirection: WebGLUniformLocation;
+  readonly directionalLightColorAmbient: WebGLUniformLocation;
+  readonly directionalLightColorDiffuse: WebGLUniformLocation;
+  readonly directionalLightColorSpecular: WebGLUniformLocation;
 
-  numPointLights: WebGLUniformLocation;
-  numSpotLights: WebGLUniformLocation;
+  readonly numPointLights: WebGLUniformLocation;
+  readonly numSpotLights: WebGLUniformLocation;
 
   // Camera
-  cameraPosition: WebGLUniformLocation;
+  readonly cameraPosition: WebGLUniformLocation;
 
   // Object material
-  materialAmbient: WebGLUniformLocation;
-  materialDiffuse: WebGLUniformLocation;
-  materialSpecular: WebGLUniformLocation;
-  materialShininess: WebGLUniformLocation;
+  readonly materialAmbient: WebGLUniformLocation;
+  readonly materialDiffuse: WebGLUniformLocation;
+  readonly materialSpecular: WebGLUniformLocation;
+  readonly materialShininess: WebGLUniformLocation;
 
   // Fog
-  fogNear: WebGLUniformLocation;
-  fogFar: WebGLUniformLocation;
-  fogColor: WebGLUniformLocation;
+  readonly fogNear: WebGLUniformLocation;
+  readonly fogFar: WebGLUniformLocation;
+  readonly fogColor: WebGLUniformLocation;
 }
 
 export class StandardShaderProgram extends BaseShaderProgram {
-  standardShaderUniformLocations: StandardShaderUniformLocations;
+  readonly standardShaderUniformLocations: StandardShaderUniformLocations;
 
   // Point lights
-  pointLightLocations: PointLightLocations[] = [];
-  spotLightLocations: SpotLightLocations[] = [];
+  readonly pointLightLocations: PointLightLocations[] = [];
+  readonly spotLightLocations: SpotLightLocations[] = [];
 
   constructor(gl: WebGLRenderingContext) {
     super(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
 
     this.standardShaderUniformLocations = {
-        directionalLightDirection: gl.getUniformLocation(this.program, 'uDirectionalLight.direction'),
-        directionalLightColorAmbient: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.ambient'),
-        directionalLightColorDiffuse: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.diffuse'),
-        directionalLightColorSpecular: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.specular'),
+      directionalLightDirection: gl.getUniformLocation(this.program, 'uDirectionalLight.direction'),
+      directionalLightColorAmbient: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.ambient'),
+      directionalLightColorDiffuse: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.diffuse'),
+      directionalLightColorSpecular: gl.getUniformLocation(this.program, 'uDirectionalLight.lightColor.specular'),
 
-        numPointLights: gl.getUniformLocation(this.program, 'uNumPointLights'),
-        numSpotLights: gl.getUniformLocation(this.program, 'uNumSpotLights'),
+      numPointLights: gl.getUniformLocation(this.program, 'uNumPointLights'),
+      numSpotLights: gl.getUniformLocation(this.program, 'uNumSpotLights'),
 
-        cameraPosition: gl.getUniformLocation(this.program, 'uCameraPosition'),
+      cameraPosition: gl.getUniformLocation(this.program, 'uCameraPosition'),
 
-        materialAmbient: gl.getUniformLocation(this.program, 'uMaterial.ambient'),
-        materialDiffuse: gl.getUniformLocation(this.program, 'uMaterial.diffuse'),
-        materialSpecular: gl.getUniformLocation(this.program, 'uMaterial.specular'),
-        materialShininess: gl.getUniformLocation(this.program, 'uMaterial.shininess'),
+      materialAmbient: gl.getUniformLocation(this.program, 'uMaterial.ambient'),
+      materialDiffuse: gl.getUniformLocation(this.program, 'uMaterial.diffuse'),
+      materialSpecular: gl.getUniformLocation(this.program, 'uMaterial.specular'),
+      materialShininess: gl.getUniformLocation(this.program, 'uMaterial.shininess'),
 
-        fogNear: gl.getUniformLocation(this.program, 'uFogNear'),
-        fogFar: gl.getUniformLocation(this.program, 'uFogFar'),
-        fogColor: gl.getUniformLocation(this.program, 'uFogColor'),
+      fogNear: gl.getUniformLocation(this.program, 'uFogNear'),
+      fogFar: gl.getUniformLocation(this.program, 'uFogFar'),
+      fogColor: gl.getUniformLocation(this.program, 'uFogColor'),
     };
 
-    for (let i=0; i<MAX_POINT_LIGHTS; i++) {
+    for (let i = 0; i < MAX_POINT_LIGHTS; i++) {
       const pointLightLocs = {
         position: gl.getUniformLocation(this.program, `uPointLights[${i}].position`),
         lightColorAmbient: gl.getUniformLocation(this.program, `uPointLights[${i}].lightColor.ambient`),
@@ -317,8 +317,7 @@ export class StandardShaderProgram extends BaseShaderProgram {
       this.pointLightLocations.push(pointLightLocs);
     }
 
-    for (let i=0; i<MAX_SPOT_LIGHTS; i++) {
-
+    for (let i = 0; i < MAX_SPOT_LIGHTS; i++) {
       const spotLightLocs = {
         position: gl.getUniformLocation(this.program, `uSpotLights[${i}].position`),
         direction: gl.getUniformLocation(this.program, `uSpotLights[${i}].direction`),
@@ -352,7 +351,7 @@ export class StandardShaderProgram extends BaseShaderProgram {
   setPointLights(gl: WebGLRenderingContext, pointLights: PointLight[]) {
     const numPointLights = pointLights.length;
     gl.uniform1i(this.standardShaderUniformLocations.numPointLights, numPointLights);
-    for (let index=0; index < numPointLights; index++) {
+    for (let index = 0; index < numPointLights; index++) {
       const pointLight = pointLights[index];
       gl.uniform3fv(this.pointLightLocations[index].position, pointLight.position);
       gl.uniform4fv(this.pointLightLocations[index].lightColorAmbient, pointLight.lightColor.ambient);
@@ -367,7 +366,7 @@ export class StandardShaderProgram extends BaseShaderProgram {
   setSpotLights(gl: WebGLRenderingContext, spotLights: SpotLight[]) {
     const numSpotLights = spotLights.length;
     gl.uniform1i(this.standardShaderUniformLocations.numSpotLights, numSpotLights);
-    for (let index=0; index < numSpotLights; index++) {
+    for (let index = 0; index < numSpotLights; index++) {
       const spotLight = spotLights[index];
       gl.uniform3fv(this.spotLightLocations[index].position, spotLight.position);
       gl.uniform3fv(this.spotLightLocations[index].direction, spotLight.direction);

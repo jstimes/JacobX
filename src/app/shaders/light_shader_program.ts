@@ -1,5 +1,5 @@
-import {vec3, vec4, mat4} from 'src/app/gl-matrix.js';
-import {BaseShaderProgram, BaseShaderUniformLocations} from './base_shader_program';
+import { vec3, vec4, mat4 } from 'src/app/gl-matrix.js';
+import { BaseShaderProgram, BaseShaderUniformLocations } from './base_shader_program';
 
 const VERTEX_SHADER_SOURCE = `
   precision mediump float;
@@ -35,7 +35,7 @@ const FRAGMENT_SHADER_SOURCE = `
 
 export class LightShaderProgram extends BaseShaderProgram {
 
-  colorUniformLocation: WebGLUniformLocation;
+  readonly colorUniformLocation: WebGLUniformLocation;
 
   constructor(gl: WebGLRenderingContext) {
     super(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);

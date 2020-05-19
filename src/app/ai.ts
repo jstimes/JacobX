@@ -1,36 +1,30 @@
-import {vec3, vec4, mat4} from './gl-matrix.js';
+import { vec3, vec4, mat4 } from './gl-matrix.js';
 import { makeVec, makeVec4, addVec } from './math_utils';
-
-// import { CONTROLS, Key } from 'src/app/controls';
-
-// import {Camera} from './camera';
-
-// import { GameObject } from 'src/app/game_objects/game_object';
 import { Car, Input } from 'src/app/game_objects/car';
 import { Scene } from 'src/app/scene';
 
 
 export class Ai {
 
-    car: Car;
-    scene: Scene;
+    private readonly car: Car;
+    private readonly scene: Scene;
 
     constructor(car: Car, scene: Scene) {
         this.car = car;
         this.scene = scene;
     }
 
-    wait = 1000;
+    private delay = 1000;
     getInput(): Input {
-        if (this.wait > 0) {
-            this.wait--;
+        if (this.delay > 0) {
+            this.delay--;
             return {
-                    isTurningLeft: false,
-                    isTurningRight: false,
-                    isGasPedalDown: false,
-                    isBrakePedalDown: false,
-                    isShooting: false,
-                };
+                isTurningLeft: false,
+                isTurningRight: false,
+                isGasPedalDown: false,
+                isBrakePedalDown: false,
+                isShooting: false,
+            };
         }
         const random = Math.random();
         return {
@@ -40,12 +34,5 @@ export class Ai {
             isBrakePedalDown: false,
             isShooting: random > .9,
         };
-        // return {
-        //     isTurningLeft: false,
-        //     isTurningRight: false,
-        //     isGasPedalDown: false,
-        //     isBrakePedalDown: false,
-        //     isShooting: false,
-        // };
     }
 }

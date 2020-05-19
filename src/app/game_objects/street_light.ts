@@ -1,4 +1,4 @@
-import {vec3, vec4, mat4} from 'src/app/gl-matrix.js';
+import { vec3, vec4, mat4 } from 'src/app/gl-matrix.js';
 import { GameObject } from 'src/app/game_objects/game_object';
 import { makeVec, makeVec4 } from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
@@ -9,21 +9,21 @@ import { Material } from 'src/app/material';
 
 export class StreetLight extends GameObject {
 
-    color: vec4 = makeVec4(.3, .1, .3, 1.0);
-    material: Material = {
+    private readonly color: vec4 = makeVec4(.3, .1, .3, 1.0);
+    private readonly material: Material = {
         ambient: makeVec4(.3, .1, .3, 1.0),
         diffuse: makeVec4(.3, .1, .3, 1.0),
         specular: makeVec4(1, 1, 1, 1),
         shininess: 69,
     }
 
-    baseScale: vec3 = makeVec(1, 10, 1);
-    basePosition: vec3 = makeVec(5, 10, 0);
+    private readonly baseScale: vec3 = makeVec(1, 10, 1);
+    private readonly basePosition: vec3 = makeVec(5, 10, 0);
 
-    crossBarScale: vec3 = makeVec(4, 1, 1);
-    crossBarPosition: vec3 = makeVec(0, 19, 0);
+    private readonly crossBarScale: vec3 = makeVec(4, 1, 1);
+    private readonly crossBarPosition: vec3 = makeVec(0, 19, 0);
 
-    light: PointLight = {
+    private readonly light: PointLight = {
         lightType: LightType.POINT,
         position: makeVec(-3, 17, 0),
         lightColor: {

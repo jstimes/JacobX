@@ -1,25 +1,25 @@
-import {vec3, mat4} from 'src/app/gl-matrix.js';
+import { vec3, mat4 } from 'src/app/gl-matrix.js';
 
-import {makeVec, makeVec4, addVec, hasSignChange, sign, Square, EPSILON} from 'src/app/math_utils';
-import {GameObject} from 'src/app/game_objects/game_object';
-import {Material} from 'src/app/material';
+import { makeVec, makeVec4, addVec, hasSignChange, sign, Square, EPSILON } from 'src/app/math_utils';
+import { GameObject } from 'src/app/game_objects/game_object';
+import { Material } from 'src/app/material';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 
-import {CUBE_RENDERABLE} from 'src/app/renderables/cube_renderable';
+import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
 
 export class Projectile extends GameObject {
 
-    material: Material = {
+    private readonly material: Material = {
         ambient: makeVec4(1, .8, 0, 1.0),
         diffuse: makeVec4(1, .8, 0, 1.0),
         specular: makeVec4(1, 1.0, 1.0, 1.0),
         shininess: .1,
     }
 
-    damage = 20;
-    fireSpeed: number = .08;
-    initialVelocity: vec3;
-    initialPosition: vec3;
+    readonly damage = 20;
+    readonly fireSpeed: number = .08;
+    readonly initialVelocity: vec3;
+    readonly initialPosition: vec3;
     timeElapsedMs: number;
 
     position: vec3;

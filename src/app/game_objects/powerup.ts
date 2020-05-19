@@ -1,4 +1,4 @@
-import {vec3, mat4} from 'src/app/gl-matrix.js';
+import { vec3, mat4 } from 'src/app/gl-matrix.js';
 import { GameObject } from 'src/app/game_objects/game_object';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { Material } from 'src/app/material';
@@ -14,9 +14,9 @@ export enum PowerUpType {
 
 class BasePowerUp extends GameObject {
     powerUpType: PowerUpType;
-    
+
     material: Material;
-    yRotation: number;
+    private yRotation: number;
 
     light: PointLight = {
         position: this.position,

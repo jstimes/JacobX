@@ -1,21 +1,21 @@
-import {loadTexture, initShaderProgram, loadShader} from 'src/app/gl_utils';
+import { loadTexture, initShaderProgram, loadShader } from 'src/app/gl_utils';
 
 export interface BaseShaderAttribLocations {
-    vertexPosition: number;
-    vertexNormal: number;
+    readonly vertexPosition: number;
+    readonly vertexNormal: number;
 }
 
 export interface BaseShaderUniformLocations {
-    projectionMatrix: WebGLUniformLocation;
-    viewMatrix: WebGLUniformLocation;
-    modelMatrix: WebGLUniformLocation;
-    normalMatrix: WebGLUniformLocation;
+    readonly projectionMatrix: WebGLUniformLocation;
+    readonly viewMatrix: WebGLUniformLocation;
+    readonly modelMatrix: WebGLUniformLocation;
+    readonly normalMatrix: WebGLUniformLocation;
 }
 
 export class BaseShaderProgram {
-    program: WebGLProgram;
-    attribLocations: BaseShaderAttribLocations;
-    uniformLocations: BaseShaderUniformLocations;
+    readonly program: WebGLProgram;
+    readonly attribLocations: BaseShaderAttribLocations;
+    readonly uniformLocations: BaseShaderUniformLocations;
 
     constructor(gl: WebGLRenderingContext, vsSource: string, fsSource: string) {
         const shaderProgram = initShaderProgram(gl, vsSource, fsSource);

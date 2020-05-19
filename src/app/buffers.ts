@@ -1,6 +1,6 @@
 
 
 export interface Buffers {
-    position: WebGLBuffer;
-    normal: WebGLBuffer;
+    readonly position: WebGLBuffer;
+    readonly normal: WebGLBuffer;
 }

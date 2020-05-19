@@ -1,22 +1,22 @@
-import {vec3, mat4} from 'src/app/gl-matrix.js';
+import { vec3, mat4 } from 'src/app/gl-matrix.js';
 
-import {makeVec, makeVec4, addVec, hasSignChange, sign, Square, EPSILON} from 'src/app/math_utils';
+import { makeVec, makeVec4, addVec, hasSignChange, sign, Square, EPSILON } from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { CAR_BODY_RENDERABLE } from 'src/app/renderables/car_body_renderable';
 import { WHEEL_RENDERABLE } from 'src/app/renderables/wheel_renderable';
 import { CONTROLS } from 'src/app/controls';
 import { Key } from 'src/app/controls';
-import {GameObject} from './game_object';
-import {Projectile} from 'src/app/game_objects/projectile';
+import { GameObject } from './game_object';
+import { Projectile } from 'src/app/game_objects/projectile';
 import { Floor } from 'src/app/game_objects/floor';
 import { Light, SpotLight, LightType } from 'src/app/lights/lights';
-import {Material} from 'src/app/material';
+import { Material } from 'src/app/material';
 import { LightShaderProgram } from 'src/app/shaders/light_shader_program';
 import { CUBE_RENDERABLE } from 'src/app/renderables/cube_renderable';
-import {HALF_SPHERE_RENDERABLE} from 'src/app/renderables/half_sphere_renderable';
+import { HALF_SPHERE_RENDERABLE } from 'src/app/renderables/half_sphere_renderable';
 import { Gun } from 'src/app/game_objects/gun';
 import { Box } from 'src/app/collision';
-import {Ai} from 'src/app/ai';
+import { Ai } from 'src/app/ai';
 import { PowerUp, PowerUpType } from 'src/app/game_objects/powerup';
 
 const X_AXIS = makeVec(1, 0, 0);
@@ -24,21 +24,21 @@ const Y_AXIS = makeVec(0, 1, 0);
 const Z_AXIS = makeVec(0, 0, -1);
 
 export interface Input {
-  isTurningLeft: boolean;
-  isTurningRight: boolean;
-  isGasPedalDown: boolean;
-  isBrakePedalDown: boolean;
-  isShooting: boolean;
+  readonly isTurningLeft: boolean;
+  readonly isTurningRight: boolean;
+  readonly isGasPedalDown: boolean;
+  readonly isBrakePedalDown: boolean;
+  readonly isShooting: boolean;
 }
 
 export class Car extends GameObject {
-  isRenderAabb: boolean = false;
+  readonly isRenderAabb: boolean = false;
 
-  isUsingControls: boolean = false;
+  private isUsingControls: boolean = false;
   ai: Ai;
 
-  gun: Gun = new Gun();
-  projectiles: Projectile[] = [];
+  readonly gun: Gun = new Gun();
+  private projectiles: Projectile[] = [];
 
   health: number = 100;
   private hasShield: boolean = false;
@@ -86,7 +86,7 @@ export class Car extends GameObject {
   yRotationAngle: number = 0;
   zRotationAngle: number = 0;
 
-  velocity: vec3 = makeVec(0,0,0);
+  velocity: vec3 = makeVec(0, 0, 0);
   acceleration: vec3 = makeVec(0, 0, 0);
   readonly accelerationPerGas: number = 1.1;
   readonly restDecelerationRate: number = 10;
@@ -110,11 +110,11 @@ export class Car extends GameObject {
   readonly backLeftWheelPosition: vec3;
   readonly backRightWheelPosition: vec3;
   readonly frontRightWheelPosition: vec3;
-  
+
   constructor(private readonly floor: Floor) {
     super();
     this.frontLeftWheelPosition = makeVec(-this.xOffset, this.groundOffset, -this.wheelZOffset);
-    this.backLeftWheelPosition = makeVec(-this.xOffset, this.groundOffset,this. wheelZOffset);
+    this.backLeftWheelPosition = makeVec(-this.xOffset, this.groundOffset, this.wheelZOffset);
     this.backRightWheelPosition = makeVec(this.xOffset, this.groundOffset, this.wheelZOffset);
     this.frontRightWheelPosition = makeVec(this.xOffset, this.groundOffset, -this.wheelZOffset);
   }
@@ -178,12 +178,12 @@ export class Car extends GameObject {
     const velocityMag = vec3.length(this.velocity);
 
     const {
-        isTurningLeft,
-        isTurningRight,
-        isGasPedalDown,
-        isBrakePedalDown,
-        isShooting,
-      } = this.getInput();
+      isTurningLeft,
+      isTurningRight,
+      isGasPedalDown,
+      isBrakePedalDown,
+      isShooting,
+    } = this.getInput();
 
     // Handle shooting:
     this.gun.update(elapsedMs);
@@ -197,7 +197,7 @@ export class Car extends GameObject {
       this.projectiles.push(this.gun.shoot(gunPosition, forward, this.getRotationMatrix()));
       console.log("shot fired");
     }
-    
+
     // Determine wheel orientation:
     const areWheelsStraight = Math.abs(this.wheelTurn) < EPSILON;
     if (isTurningRight && !isTurningLeft) {
@@ -225,10 +225,10 @@ export class Car extends GameObject {
 
       // TODO should use this.getUpVector()
       const rotatedVelocity = vec3.rotateY(
-          vec3.create(), 
-          velocityNormalized, 
-          makeVec(0, 0, 0), 
-          rotationAngleUpdate);
+        vec3.create(),
+        velocityNormalized,
+        makeVec(0, 0, 0),
+        rotationAngleUpdate);
       this.velocity = vec3.scale(rotatedVelocity, rotatedVelocity, velocityMag);
 
       const accelerationNormalized = vec3.normalize(vec3.create(), this.acceleration);
@@ -274,7 +274,7 @@ export class Car extends GameObject {
         console.log('reached max velocity');
       }
     }
-    
+
     // Update car body's y position:
     this.position[1] = this.floor.getYAtXZ(this.position[0], this.position[2]);
 
@@ -345,7 +345,7 @@ export class Car extends GameObject {
   }
 
   onPowerUp(powerUp: PowerUp): void {
-    switch(powerUp.powerUpType) {
+    switch (powerUp.powerUpType) {
       case PowerUpType.SHIELD:
         this.activateShield();
         break;
@@ -380,9 +380,9 @@ export class Car extends GameObject {
   getCarBodyModel(): mat4 {
     const carBodyModelMatrix = mat4.create();
     mat4.translate(carBodyModelMatrix,
-        carBodyModelMatrix,
-        this.position);
-  
+      carBodyModelMatrix,
+      this.position);
+
     mat4.multiply(carBodyModelMatrix, carBodyModelMatrix, this.getRotationMatrix());
     return carBodyModelMatrix;
   }
@@ -395,27 +395,27 @@ export class Car extends GameObject {
       Y_AXIS);
 
     mat4.rotate(rotationMatrix,
-        rotationMatrix,
-        this.xRotationAngle,
-        X_AXIS);
+      rotationMatrix,
+      this.xRotationAngle,
+      X_AXIS);
 
     mat4.rotate(rotationMatrix,
-        rotationMatrix,
-        this.zRotationAngle,
-        Z_AXIS);
+      rotationMatrix,
+      this.zRotationAngle,
+      Z_AXIS);
     return rotationMatrix;
   }
 
   getCarBodyModelWithJustYRotation(): mat4 {
     const carBodyModelMatrix = mat4.create();
     mat4.translate(carBodyModelMatrix,
-        carBodyModelMatrix,
-        this.position);
+      carBodyModelMatrix,
+      this.position);
 
     mat4.rotate(carBodyModelMatrix,
-        carBodyModelMatrix,
-        this.yRotationAngle,
-        Y_AXIS);
+      carBodyModelMatrix,
+      this.yRotationAngle,
+      Y_AXIS);
     return carBodyModelMatrix;
   }
 
@@ -443,7 +443,7 @@ export class Car extends GameObject {
     mat4.translate(translation, translation, this.headlight.position);
     const scale = .3;
     const model = mat4.create();
-    mat4.scale(model, model, [scale, scale ,scale]);
+    mat4.scale(model, model, [scale, scale, scale]);
     mat4.multiply(model, this.getRotationMatrix(), model);
     mat4.multiply(model, translation, model);
     CUBE_RENDERABLE.render(gl, program, model);
@@ -469,12 +469,12 @@ export class Car extends GameObject {
     // Render the AABB
     const box = this.getAxisAlignedBox();
     const model = mat4.create();
-    const x = box.bounds[1][0] - box.bounds[0][0]; 
+    const x = box.bounds[1][0] - box.bounds[0][0];
     const y = box.bounds[1][1] - box.bounds[0][1];
     const z = box.bounds[1][2] - box.bounds[0][2];
-    mat4.translate(model, model, makeVec(this.position[0], this.position[1] + y/2, this.position[2]));
+    mat4.translate(model, model, makeVec(this.position[0], this.position[1] + y / 2, this.position[2]));
     mat4.scale(model, model, [
-      x/2, y/2, z/2
+      x / 2, y / 2, z / 2
     ]);
     const boxMaterial: Material = {
       ambient: makeVec4(.3, .3, .1, .1),
@@ -506,11 +506,11 @@ export class Car extends GameObject {
   }
 
   private renderWheel(
-      isFront: boolean, 
-      carBodyModelMatrix: mat4, 
-      wheelPos: vec3, 
-      gl: WebGLRenderingContext, 
-      program: StandardShaderProgram) {
+    isFront: boolean,
+    carBodyModelMatrix: mat4,
+    wheelPos: vec3,
+    gl: WebGLRenderingContext,
+    program: StandardShaderProgram) {
     const wheelTransMat = mat4.create();
     mat4.translate(wheelTransMat,
       wheelTransMat,
@@ -519,7 +519,7 @@ export class Car extends GameObject {
     mat4.multiply(wheelModelMatrix, carBodyModelMatrix, wheelTransMat);
     if (isFront) {
       const wheelRotMat = mat4.create();
-      mat4.rotate(wheelRotMat, wheelRotMat, this.wheelTurn, [0,1,0]);
+      mat4.rotate(wheelRotMat, wheelRotMat, this.wheelTurn, [0, 1, 0]);
       mat4.multiply(wheelModelMatrix, wheelModelMatrix, wheelRotMat);
     }
     WHEEL_RENDERABLE.render(gl, program, wheelModelMatrix);
