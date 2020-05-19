@@ -1,4 +1,4 @@
-import { vec3, vec4, mat4 } from './gl-matrix.js';
+import { vec3, vec4, mat4 } from 'gl-matrix';
 import { makeVec, makeVec4, addVec } from './math_utils';
 import { Car, Input } from 'src/app/game_objects/car';
 import { Scene } from 'src/app/scene';

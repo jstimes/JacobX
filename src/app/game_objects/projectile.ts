@@ -1,4 +1,4 @@
-import { vec3, mat4 } from 'src/app/gl-matrix.js';
+import { vec3, mat4 } from 'gl-matrix';
 
 import { makeVec, makeVec4, addVec, hasSignChange, sign, Square, EPSILON } from 'src/app/math_utils';
 import { GameObject } from 'src/app/game_objects/game_object';

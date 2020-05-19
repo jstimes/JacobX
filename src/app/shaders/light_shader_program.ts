@@ -1,4 +1,4 @@
-import { vec3, vec4, mat4 } from 'src/app/gl-matrix.js';
+import { vec3, vec4, mat4 } from 'gl-matrix';
 import { BaseShaderProgram, BaseShaderUniformLocations } from './base_shader_program';
 
 const VERTEX_SHADER_SOURCE = `

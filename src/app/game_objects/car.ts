@@ -1,4 +1,4 @@
-import { vec3, mat4 } from 'src/app/gl-matrix.js';
+import { vec3, mat4 } from 'gl-matrix';
 
 import { makeVec, makeVec4, addVec, hasSignChange, sign, Square, EPSILON } from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
@@ -195,7 +195,6 @@ export class Car extends GameObject {
       vec3.add(offset, offset, makeVec(0, 3, 0));
       vec3.add(gunPosition, this.position, offset);
       this.projectiles.push(this.gun.shoot(gunPosition, forward, this.getRotationMatrix()));
-      console.log("shot fired");
     }
 
     // Determine wheel orientation:
@@ -248,13 +247,10 @@ export class Car extends GameObject {
       if (vec3.length(newAcceleration) < this.maxAccelerationMagnitude) {
         this.acceleration = newAcceleration;
       }
-      console.log("accelerating");
     } else if (isBrakePedalDown && !isGasPedalDown && velocityMag > EPSILON) {
       vec3.scale(this.acceleration, oppositeVelocityNormalized, this.brakeDecelerationRate);
-      console.log("braking");
     } else if (isCoasting) {
       vec3.scale(this.acceleration, oppositeVelocityNormalized, this.restDecelerationRate);
-      console.log("coasting");
     }
 
     // Update velocity based on acceleration:
@@ -262,7 +258,6 @@ export class Car extends GameObject {
     const newVelocity = vec3.add(vec3.create(), this.velocity, vec3.scale(vec3.create(), this.acceleration, elapsedSeconds));
     const prevNewDot = vec3.dot(prevVelocity, newVelocity);
     if ((isCoasting || isBrakePedalDown) && prevNewDot <= 0.0) {
-      console.log("stopping");
       this.velocity = makeVec(0.0, 0.0, 0.0);
       this.acceleration = makeVec(0.0, 0.0, 0.0);
     } else {
@@ -271,7 +266,6 @@ export class Car extends GameObject {
       if (newVelocityMagnitude > this.maxVelocityMagnitude) {
         vec3.normalize(this.velocity, this.velocity);
         vec3.scale(this.velocity, this.velocity, this.maxVelocityMagnitude);
-        console.log('reached max velocity');
       }
     }
 
@@ -489,8 +483,10 @@ export class Car extends GameObject {
   getHasShield(): boolean {
     return this.hasShield;
   }
+
   shieldRadius = 13;
-  private renderShield(gl: WebGLRenderingContext, program: StandardShaderProgram) {
+  private renderShield(
+    gl: WebGLRenderingContext, program: StandardShaderProgram) {
     const model = this.getCarBodyModel();
     const shieldPercentage = this.shieldHealth / this.MAX_SHIELD_HEALTH;
     const shieldMaterial: Material = {
@@ -500,7 +496,10 @@ export class Car extends GameObject {
       shininess: 2.0,
     };
     program.setMaterialUniform(gl, shieldMaterial);
-    const scale = mat4.scale(mat4.create, mat4.create(), [this.shieldRadius, this.shieldRadius, this.shieldRadius]);
+    const scale = mat4.scale(
+      mat4.create(),
+      mat4.create(),
+      [this.shieldRadius, this.shieldRadius, this.shieldRadius]);
     mat4.multiply(model, model, scale);
     HALF_SPHERE_RENDERABLE.render(gl, program, model);
   }

@@ -1,6 +1,6 @@
-import {Renderable} from './renderable';
-import {vec3, mat4} from '../gl-matrix.js';
-import {makeVec, addVec, Square, Triangle, getTrianglesFromSquares} from '../math_utils';
+import { Renderable } from './renderable';
+import { vec3, mat4 } from 'gl-matrix';
+import { makeVec, addVec, Square, Triangle, getTrianglesFromSquares } from '../math_utils';
 
 /** Square centered at (0, 0, 0) on the xz plane, with it's normal in the +y direction. */
 class SquareRenderable extends Renderable {
@@ -13,7 +13,7 @@ class SquareRenderable extends Renderable {
         const bottomLeft = makeVec(-halfWidth, 0, halfWidth);
         const bottomRight = makeVec(halfWidth, 0, halfWidth);
         const topRight = makeVec(halfWidth, 0, -halfWidth);
-        const squares = [new Square({a: topLeft, b: bottomLeft, c: bottomRight, d: topRight})];
+        const squares = [new Square({ a: topLeft, b: bottomLeft, c: bottomRight, d: topRight })];
         const triangles = getTrianglesFromSquares(squares);
         this.addTriangles(triangles);
     }

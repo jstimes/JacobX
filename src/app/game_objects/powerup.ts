@@ -1,4 +1,4 @@
-import { vec3, mat4 } from 'src/app/gl-matrix.js';
+import { vec3, mat4 } from 'gl-matrix';
 import { GameObject } from 'src/app/game_objects/game_object';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { Material } from 'src/app/material';
@@ -34,7 +34,7 @@ class BasePowerUp extends GameObject {
     constructor() {
         super();
         const s = 3;
-        this.scale = [s, s, s];
+        this.scale = new Float32Array([s, s, s]);
 
         this.yRotation = Math.random() * Math.PI / 2.0;
     }

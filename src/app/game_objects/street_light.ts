@@ -1,4 +1,4 @@
-import { vec3, vec4, mat4 } from 'src/app/gl-matrix.js';
+import { vec3, vec4, mat4 } from 'gl-matrix';
 import { GameObject } from 'src/app/game_objects/game_object';
 import { makeVec, makeVec4 } from 'src/app/math_utils';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';

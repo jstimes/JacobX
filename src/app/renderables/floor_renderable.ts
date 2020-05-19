@@ -1,6 +1,6 @@
-import {Renderable} from './renderable';
-import {vec3, mat4} from '../gl-matrix.js';
-import {makeVec, addVec, Square, Triangle} from '../math_utils';
+import { Renderable } from './renderable';
+import { vec3, mat4 } from 'gl-matrix';
+import { makeVec, addVec, Square, Triangle } from '../math_utils';
 
 class FloorRenderable extends Renderable {
 
@@ -18,14 +18,14 @@ class FloorRenderable extends Renderable {
 
       const Y = 0;
       const squaresPerRow = width / squareSize;
-      for (let i=0; i<squaresPerRow-1; i++) {
-          for (let j=0; j<squaresPerRow-1; j++) {
-              const a = makeVec(i*squareSize + start, Y, j*squareSize + start);
-              const b = makeVec(i*squareSize + start, Y, (j+1)*squareSize + start);
-              const c = makeVec((i+1)*squareSize + start, Y, (j+1)*squareSize + start);
-              const d = makeVec((i+1)*squareSize + start, Y, j*squareSize + start);
-              squares.push(new Square({a, b, c, d}));
-          }
+      for (let i = 0; i < squaresPerRow - 1; i++) {
+        for (let j = 0; j < squaresPerRow - 1; j++) {
+          const a = makeVec(i * squareSize + start, Y, j * squareSize + start);
+          const b = makeVec(i * squareSize + start, Y, (j + 1) * squareSize + start);
+          const c = makeVec((i + 1) * squareSize + start, Y, (j + 1) * squareSize + start);
+          const d = makeVec((i + 1) * squareSize + start, Y, j * squareSize + start);
+          squares.push(new Square({ a, b, c, d }));
+        }
       }
 
       const triangles: Triangle[] = [];

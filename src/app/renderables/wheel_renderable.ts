@@ -1,6 +1,6 @@
-import {vec3, mat4} from '../gl-matrix.js';
-import {Renderable} from './renderable';
-import {makeVec, addVec, Square, Triangle} from '../math_utils';
+import { vec3, mat4 } from 'gl-matrix';
+import { Renderable } from './renderable';
+import { makeVec, addVec, Square, Triangle } from '../math_utils';
 
 class WheelRenderable extends Renderable {
   positions: number[] = [];
@@ -33,7 +33,7 @@ class WheelRenderable extends Renderable {
     // Normal is going left, negative x axis.
     const circleTriangles = [];
     const circleCenter = makeVec(0, 0, 0);
-    for(let theta = 0; theta < Math.PI * 2; theta += deltaTheta) {
+    for (let theta = 0; theta < Math.PI * 2; theta += deltaTheta) {
       // X is fixed, z = cos, y = sin
       const cosA = Math.cos(theta);
       const sinA = Math.sin(theta);
@@ -41,7 +41,7 @@ class WheelRenderable extends Renderable {
       const cosB = Math.cos(theta + deltaTheta);
       const sinB = Math.sin(theta + deltaTheta);
       const ptB = makeVec(0, sinB * wheelRadius, cosB * wheelRadius);
-      circleTriangles.push(new Triangle(ptB,  vec3.clone(circleCenter), ptA));
+      circleTriangles.push(new Triangle(ptB, vec3.clone(circleCenter), ptA));
     }
 
     // Then copy and translate the circle to make left and right faces of wheel:
@@ -49,10 +49,10 @@ class WheelRenderable extends Renderable {
       const leftTriangle = tri.clone().translate(makeVec(-wheelXOffset, 0, 0));
       const rightTriangle = tri.clone().translate(makeVec(wheelXOffset, 0, 0)).flip();
       const cylinderSquare = new Square({
-          a: vec3.clone(leftTriangle.a),
-          b: vec3.clone(leftTriangle.c),
-          c: vec3.clone(rightTriangle.a),
-          d: vec3.clone(rightTriangle.c),
+        a: vec3.clone(leftTriangle.a),
+        b: vec3.clone(leftTriangle.c),
+        c: vec3.clone(rightTriangle.a),
+        d: vec3.clone(rightTriangle.c),
       });
       triangles.push(leftTriangle);
       triangles.push(rightTriangle);

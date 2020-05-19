@@ -1,4 +1,4 @@
-import { vec4, mat4 } from 'src/app/gl-matrix.js';
+import { vec4, mat4 } from 'gl-matrix';
 import { makeVec } from 'src/app/math_utils';
 
 // Thank you Joey DeVries - https://learnopengl.com/Lighting/Materials

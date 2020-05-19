@@ -1,19 +1,19 @@
-import {vec3, mat4} from '../gl-matrix.js';
+import { vec3, mat4 } from 'gl-matrix';
 
-import {Renderable} from './renderable';
-import {makeVec, addVec, getTrianglesFromSquares, Square, Triangle} from '../math_utils';
+import { Renderable } from './renderable';
+import { makeVec, addVec, getTrianglesFromSquares, Square, Triangle } from '../math_utils';
 
 class CarBodyRenderable extends Renderable {
 
   readonly LENGTH = 20;
   readonly bodyWidth = 4;
-  readonly  xOffset = this.bodyWidth / 2;
-  readonly  groundOffset = 2;
-  readonly  height = 4;
-  readonly  yMin = this.groundOffset;
-  readonly  yMax = this.groundOffset + this.height;
-  readonly  length = 20;
-  readonly  zOffset = this.LENGTH / 2;
+  readonly xOffset = this.bodyWidth / 2;
+  readonly groundOffset = 2;
+  readonly height = 4;
+  readonly yMin = this.groundOffset;
+  readonly yMax = this.groundOffset + this.height;
+  readonly length = 20;
+  readonly zOffset = this.LENGTH / 2;
 
   constructor() {
     super();
@@ -53,18 +53,18 @@ class CarBodyRenderable extends Renderable {
       a: tlb, b: blb, c: brb, d: trb,
     });
     squares.push(backFace);
-    
+
     const topFace: Square = new Square({
       a: tlf, b: tlb, c: trb, d: trf,
     });
     squares.push(topFace);
 
-    const bottomFace: Square =  new Square({
+    const bottomFace: Square = new Square({
       a: brf, b: brb, c: blb, d: blf,
     });
     squares.push(bottomFace);
-    
-    const leftFace: Square =  new Square({
+
+    const leftFace: Square = new Square({
       a: tlf, b: blf, c: blb, d: tlb,
     });
     squares.push(leftFace);

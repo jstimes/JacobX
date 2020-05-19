@@ -1,5 +1,5 @@
-import {vec3, vec4, mat4} from 'src/app/gl-matrix.js';
-import {makeVec, makeVec4, addVec} from 'src/app/math_utils';
+import { vec3, vec4, mat4 } from 'gl-matrix';
+import { makeVec, makeVec4, addVec } from 'src/app/math_utils';
 
 
 export enum LightType {
@@ -47,4 +47,4 @@ export interface SpotLight {
     quadratic: number,
 }
 
-export type Light = DirectionalLight|PointLight|SpotLight;
+export type Light = DirectionalLight | PointLight | SpotLight;

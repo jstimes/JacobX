@@ -1,4 +1,4 @@
-import { vec3, vec4, mat4 } from './gl-matrix.js';
+import { vec3, vec4, mat4 } from 'gl-matrix';
 import { makeVec, makeVec4, addVec } from './math_utils';
 
 import { CONTROLS, Key } from 'src/app/controls';
@@ -133,7 +133,6 @@ export class Scene {
                     hit = true;
                 }
                 if (hit) {
-                    console.log("target hit");
                     car.onHit(proj);
                     this.projectiles.splice(i, 1);
                     this.gameObjects.splice(this.gameObjects.indexOf(proj), 1);
@@ -289,6 +288,10 @@ export class Scene {
         const widthHeight = getWidthHeight(this.gl);
         const displayWidth = Math.floor(widthHeight.x * realToCSSPixels);
         const displayHeight = Math.floor(widthHeight.y * realToCSSPixels);
+
+        console.log(`glW: ${widthHeight.x}, glH: ${widthHeight.y}`);
+        console.log(`cvW: ${this.canvas.width}, cvH: ${this.canvas.height}`);
+        console.log(`dpW: ${displayWidth}, dpH: ${displayHeight}`);
 
         // Check if the canvas is not the same size.
         if (this.canvas.width !== displayWidth ||

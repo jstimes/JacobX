@@ -1,7 +1,7 @@
-import {vec3, mat4} from '../gl-matrix.js';
-import {Buffers} from '../buffers';
+import { vec3, mat4 } from 'gl-matrix';
+import { Buffers } from '../buffers';
 import { BaseShaderProgram } from 'src/app/shaders/base_shader_program';
-import {makeVec, addVec, Triangle} from 'src/app/math_utils';
+import { makeVec, addVec, Triangle } from 'src/app/math_utils';
 
 export abstract class Renderable {
 
@@ -31,21 +31,21 @@ export abstract class Renderable {
         }
     }
 
-    initBuffers(gl: WebGLRenderingContext) {    
+    initBuffers(gl: WebGLRenderingContext) {
         const positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER,
-                      new Float32Array(this.getPositions()),
-                      gl.STATIC_DRAW);
-    
+            new Float32Array(this.getPositions()),
+            gl.STATIC_DRAW);
+
         const normalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.getNormals()),
-                      gl.STATIC_DRAW);
-      
+            gl.STATIC_DRAW);
+
         this.buffers = {
-          position: positionBuffer,
-          normal: normalBuffer,
+            position: positionBuffer,
+            normal: normalBuffer,
         };
     }
 
@@ -64,7 +64,7 @@ export abstract class Renderable {
             const type = gl.FLOAT;    // the data in the buffer is 32bit floats
             const normalize = false;  // don't normalize
             const stride = 0;         // how many bytes to get from one set of values to the next
-                                    // 0 = use type and numComponents above
+            // 0 = use type and numComponents above
             const offset = 0;         // how many bytes inside the buffer to start from
             gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.position);
             gl.vertexAttribPointer(
@@ -75,7 +75,7 @@ export abstract class Renderable {
                 stride,
                 offset);
             gl.enableVertexAttribArray(
-            program.attribLocations.vertexPosition);
+                program.attribLocations.vertexPosition);
         }
 
         // Tell WebGL how to pull out the normals from
@@ -97,10 +97,10 @@ export abstract class Renderable {
             gl.enableVertexAttribArray(
                 program.attribLocations.vertexNormal);
         }
-        
+
         // Tell WebGL to use our program when drawing
         gl.useProgram(program.program);
-        
+
         // Set the shader uniforms
         gl.uniformMatrix4fv(
             program.uniformLocations.modelMatrix,
@@ -110,7 +110,7 @@ export abstract class Renderable {
             program.uniformLocations.normalMatrix,
             false,
             normalMatrix);
-        
+
         {
             const vertexCount = this.getPositions().length / 3;
             const type = gl.UNSIGNED_SHORT;

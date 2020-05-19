@@ -1,4 +1,4 @@
-import { vec3, mat4 } from 'src/app/gl-matrix.js';
+import { vec3, mat4 } from 'gl-matrix';
 import { StandardShaderProgram } from 'src/app/shaders/standard_shader_program';
 import { FLOOR_RENDERABLE } from 'src/app/renderables/floor_renderable';
 import { GameObject } from './game_object';
@@ -24,7 +24,7 @@ export class Floor extends GameObject {
     constructor() {
         super();
         const scaling = this.width / 2;
-        this.scale = [scaling, scaling, scaling];
+        this.scale = new Float32Array([scaling, scaling, scaling]);
 
         if (this.useGrid) {
             const gridColors = [
