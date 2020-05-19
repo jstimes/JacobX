@@ -289,10 +289,6 @@ export class Scene {
         const displayWidth = Math.floor(widthHeight.x * realToCSSPixels);
         const displayHeight = Math.floor(widthHeight.y * realToCSSPixels);
 
-        console.log(`glW: ${widthHeight.x}, glH: ${widthHeight.y}`);
-        console.log(`cvW: ${this.canvas.width}, cvH: ${this.canvas.height}`);
-        console.log(`dpW: ${displayWidth}, dpH: ${displayHeight}`);
-
         // Check if the canvas is not the same size.
         if (this.canvas.width !== displayWidth ||
             this.canvas.height !== displayHeight) {

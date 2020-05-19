@@ -33,13 +33,23 @@ export class Main {
   private scene: Scene;
 
   constructor() {
+    document.body.style.backgroundColor = '#000000';
+
     this.canvas = document.createElement('canvas');
-    document.body.appendChild(this.canvas);
     this.canvas.style.backgroundColor = '#FF0000';
     this.canvas.style.width = `100vw`;
     this.canvas.style.height = `100vh`;
     this.canvas.style.display = 'block';
-    document.body.style.backgroundColor = '#000000';
+    document.body.appendChild(this.canvas);
+
+    const controls = document.createElement('div');
+    controls.innerHTML = 'A/D - steer<br>W/S - accelerate/break<br>SPACE - shoot';
+    controls.style.position = 'absolute';
+    controls.style.color = '#fdaaaa';
+    const controlMargin = `12px`;
+    controls.style.top = controlMargin;
+    controls.style.left = controlMargin;
+    document.body.appendChild(controls);
 
     this.gl = this.canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
 
