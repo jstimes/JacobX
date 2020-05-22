@@ -18,10 +18,23 @@ module.exports = {
     },
     module: {
         rules: [
+            // TS loader.
             {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
+            },
+            // CSS loader.
+            {
+                test: /\.css$/,
+                use: [
+                    "style-loader",
+                    "@teamsupercell/typings-for-css-modules-loader",
+                    {
+                        loader: "css-loader",
+                        options: { modules: true }
+                    }
+                ],
             },
         ],
     },

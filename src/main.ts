@@ -24,6 +24,7 @@ import { CONTROLS, Key } from 'src/app/controls';
 import { Scene } from 'src/app/scene';
 import { HALF_SPHERE_RENDERABLE } from 'src/app/renderables/half_sphere_renderable';
 import { Ai } from 'src/app/ai';
+import * as styles from 'src/assets/css/styles.css';
 
 export class Main {
   private readonly title = 'JacobX';
@@ -41,6 +42,7 @@ export class Main {
     this.canvas.style.height = `100vh`;
     this.canvas.style.display = 'block';
     document.body.appendChild(this.canvas);
+    document.body.classList.add(styles.body);
 
     const controls = document.createElement('div');
     controls.innerHTML = 'A/D - steer<br>W/S - accelerate/break<br>SPACE - shoot';
