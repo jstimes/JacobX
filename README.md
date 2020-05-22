@@ -1,6 +1,6 @@
 # JacobX
 
-A game by jstimes@. 
+A 3D combat-driving game (prototype) by jstimes@. 
 Play now at https://jstimes.github.io/JacobX/dist/index.html
 
 ## Setup
